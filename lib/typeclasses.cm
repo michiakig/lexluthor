@@ -1,0 +1,5 @@
+Library
+    signature SHOW
+    signature EQ
+is
+    typeclasses.sml

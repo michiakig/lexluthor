@@ -1,0 +1,10 @@
+Library
+    functor TestFn
+    structure MatchTests
+is
+    tests.sml
+    framework.sml
+    ../lexluthor.cm
+    ../lib/typeclasses.cm
+    ../lib/utils.cm
+    $/basis.cm

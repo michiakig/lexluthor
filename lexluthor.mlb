@@ -1,0 +1,8 @@
+$(SML_LIB)/basis/basis.mlb
+/usr/local/Cellar/mlton/20100608-1/lib/mlton/sml/smlnj-lib/Util/smlnj-lib.mlb
+lib/utils.sml
+lib/typeclasses.sml
+lexluthor.sml
+tests/framework.sml
+tests/tests.sml
+tests/runTests.sml
