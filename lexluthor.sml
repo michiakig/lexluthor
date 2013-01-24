@@ -261,22 +261,25 @@ in
                           (T.listItems(T.filter (fn d => anyShared(d,nfaStopStates)) dfaStates)))
 
        in
-          (while (notEmpty unvisited)
-                 do let val u = pop unvisited
-                        val idx = ref 0
-                        val len = length alphas
-                    in while (!idx < len)
-                             do (let val t = dfaEdge(nfa, u, NFAinput (List.nth(alphas, !idx)))
-                                 in if not (S.isEmpty t)
-                                       then (dfaEdges := DFAedge {beginState = getDfaState u,
-                                                                  endState = getDfaState t,
-                                                                  label = DFAinput (List.nth(alphas,!idx))} :: (!dfaEdges);
-                                             if not (T.member(!dfaStates, t))
-                                                then (dfaStates := T.add (!dfaStates, t);
-                                                      push(unvisited, t))
-                                             else ())
-                                    else ()
-                                 end; idx := !idx + 1)
+          (while (notEmpty unvisited) do
+                 let
+                    val u = pop unvisited
+                 in
+                    List.app (fn a =>
+                                     let
+                                        val t = dfaEdge(nfa, u, NFAinput a)
+                                     in
+                                        if not (S.isEmpty t)
+                                           then (dfaEdges := DFAedge {beginState = getDfaState u,
+                                                                      endState = getDfaState t,
+                                                                      label = DFAinput a} :: (!dfaEdges);
+                                                 if not (T.member(!dfaStates, t))
+                                                    then (dfaStates := T.add (!dfaStates, t);
+                                                          push(unvisited, t))
+                                                 else ())
+                                        else ()
+                                     end)
+                             alphas
                     end;
            DFA {startState = Option.valOf(M.find(!dfaStatesMap, dfaStartState)),
                 edges = (!dfaEdges),
