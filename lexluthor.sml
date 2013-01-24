@@ -253,8 +253,13 @@ in
           val dfaEdges = ref []
           val dfaStates = ref (T.singleton dfaStartState) (* set of sets NFA states, ie set of DFA states *)
           val unvisited = ref [dfaStartState]
-          fun findStopStates () = fromList(map (fn t => Option.valOf(M.find(!dfaStatesMap, t)))
-                                               (T.listItems(T.filter (fn d => anyShared(d,nfaStopStates)) (!dfaStates))))
+
+          fun unsafeFind m k = Option.valOf(M.find(m, k))
+
+          fun findStopStates dfaStatesMap nfaStopStates dfaStates =
+             fromList(map (unsafeFind dfaStatesMap)
+                          (T.listItems(T.filter (fn d => anyShared(d,nfaStopStates)) dfaStates)))
+
        in
           (while (notEmpty unvisited)
                  do let val u = pop unvisited
@@ -275,7 +280,7 @@ in
                     end;
            DFA {startState = Option.valOf(M.find(!dfaStatesMap, dfaStartState)),
                 edges = (!dfaEdges),
-                stopStates = findStopStates ()})
+                stopStates = findStopStates (!dfaStatesMap) nfaStopStates (!dfaStates) })
        end
 end
 
