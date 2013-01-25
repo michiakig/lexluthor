@@ -14,3 +14,8 @@ structure Utils =
       fun second (_,y) = y
 
    end
+
+functor MapUtilsFn(Map: ORD_MAP) =
+   struct
+      fun unsafeFind m k = Option.valOf(Map.find(m, k))
+   end

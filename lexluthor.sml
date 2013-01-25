@@ -11,12 +11,18 @@ structure T : ORD_SET =
        end)
 
 (* M is a map with keys of type set of states *)
-structure M : ORD_MAP =
+structure M: ORD_MAP =
    ListMapFn(
        struct
           type ord_key = S.set
           val compare = S.compare
        end)
+structure MUtils = MapUtilsFn(M)
+structure M =
+   struct
+      open MUtils
+      open M
+   end
 
 fun fromList l = S.addList(S.empty,l)
 
@@ -254,10 +260,8 @@ in
           val dfaStates = ref (T.singleton dfaStartState) (* set of sets NFA states, ie set of DFA states *)
           val unvisited = ref [dfaStartState]
 
-          fun unsafeFind m k = Option.valOf(M.find(m, k))
-
           fun findStopStates dfaStatesMap nfaStopStates dfaStates =
-             fromList(map (unsafeFind dfaStatesMap)
+             fromList(map (M.unsafeFind dfaStatesMap)
                           (T.listItems(T.filter (fn d => anyShared(d,nfaStopStates)) dfaStates)))
 
        in
