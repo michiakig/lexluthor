@@ -1,2 +1,9 @@
+#! /bin/bash
+
 ml-build tests.cm MatchTests.main tests
-sml @SMLload=tests.x86-darwin
+
+if [ $? -eq 0 ]; then
+    echo "*** build successful, running tests ***"
+    sml @SMLload=tests.x86-darwin
+    rm tests.x86-darwin
+fi
