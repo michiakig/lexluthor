@@ -1,5 +1,6 @@
 Library
-    structure LexLuthor
+    signature LEXER_SPEC
+    functor LexLuthorFn
     structure Regexp
 is
     lexluthor.sml

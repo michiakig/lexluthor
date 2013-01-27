@@ -11,7 +11,13 @@ structure Regexp =
        | Repeat of t
    end
 
-structure LexLuthor =
+signature LEXER_SPEC =
+   sig
+      type token
+      val tokens: (Regexp.t * token) list
+   end
+
+functor LexLuthorFn(LexerSpec: LEXER_SPEC) =
 struct
 
 open Regexp
@@ -378,4 +384,16 @@ fun match (re, inputString) =
        | SOME (acc, rest) => SOME (collapse acc, collapse rest)
    end
 
+local
+   val (token :: tokens) = map Utils.first LexerSpec.tokens
+   val re = foldl Altern token tokens
+in
+   fun lex s =
+      case match (re, s) of
+         NONE => []
+       | SOME ("", _) => []
+       | SOME (match, rest) => match :: lex rest
 end
+
+end
+

@@ -1,6 +1,16 @@
 structure MatchTests =
 struct
 
+structure LexerSpec: LEXER_SPEC =
+   struct
+      open Regexp
+      datatype token = Num | Id
+      val tokens = [(Repeat(Altern(Altern(Symbol #"z", Symbol #"x"), Symbol #"y")),Num)
+                   ,(Repeat(Altern(Altern(Symbol #"a", Symbol #"b"), Symbol #"c")),Id)]
+   end
+
+structure LexLuthor = LexLuthorFn(LexerSpec)
+
 structure MatchShowEq =
    struct
       type t = (string * string) option
