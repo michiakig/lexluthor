@@ -1,5 +1,20 @@
+
+(* bare minimal regular expressions:
+   literal, concatenation, alternation, repetition (Kleene closure) *)
+
+structure Regexp =
+   struct
+      datatype t =
+         Symbol of char
+       | Concat of t * t
+       | Altern of t * t
+       | Repeat of t
+   end
+
 structure LexLuthor =
 struct
+
+open Regexp
 
 (* S is a set of states (ints), T is a set of S (set of sets of states) *)
 structure S : ORD_SET = IntListSet
@@ -41,15 +56,6 @@ fun mapToString m =
    in
       "{" ^ (String.concat(Utils.interleave (map pairToS items) ",")) ^ "}"
    end
-
-(* bare minimal regular expressions:
-   literal, concatenation, alternation, repetition (Kleene closure) *)
-
-datatype 'a regex =
-   Symbol of 'a
- | Concat of 'a regex * 'a regex
- | Altern of 'a regex * 'a regex
- | Repeat of 'a regex
 
 type state = int
 
