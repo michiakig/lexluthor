@@ -6,12 +6,20 @@ work "from the ground up", i.e. without using any existing tools (such
 as lex or ML-Lex) or any existing regular expression libraries (such
 as the one provided with SML/NJ).
 
+## a library, not a lexer generator
+
+Specifically, there is no front-end parser for regular expressions
+(tokens must be described using an AST datatype) and no code
+generator. Instead, regular expressions are translated to NFAs and
+then to DFAs in memory. This greatly reduces the complexity of the
+code, but makes it pretty unwieldy to actually use.
+
 ## current status
 
-Right now it's just a DFA-based regular expression matching engine,
-without any front end or actual lexer component. Some of the code (the
-NFA to DFA conversion code especially) is kind of bad, and needs to be
-re-written with the goal of clarity and pedagogy in mind.
+The core functionality of the lexer is complete, albeit pretty
+rough. Some of the code (the NFA to DFA conversion code especially) is
+kind of bad, and needs to be re-written with the goal of clarity and
+pedagogy in mind.
 
 ## Standard ML
 

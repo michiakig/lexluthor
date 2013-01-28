@@ -13,7 +13,7 @@ structure Regexp =
 
 signature LEXER_SPEC =
    sig
-      type token
+      eqtype token
       val tokens: (Regexp.t * token) list
    end
 
@@ -43,6 +43,13 @@ structure M =
    struct
       open MUtils
       open M
+   end
+
+structure IntListMapUtils = MapUtilsFn(IntListMap)
+structure IntListMap =
+   struct
+      open IntListMap
+      open IntListMapUtils
    end
 
 fun fromList l = S.addList(S.empty,l)
@@ -75,9 +82,10 @@ datatype 'a NFAedge = NFAedge of {beginState : state,
                                   endState   : state,
                                   label      : 'a NFAinput}
 
+(* stop states represented as a map from state (int) to token *)
 datatype 'a NFA = NFA of {startState : state,
                           edges      : 'a NFAedge list,
-                          stopStates : S.set}
+                          stopStates : LexerSpec.token option IntListMap.map}
 
 (* a little mutable state to implement unique ids makes it easier to
    merge NFAs, don't need to worry about preventing state collisions *)
@@ -93,19 +101,20 @@ in
       end
 end
 
-fun sym ch =
+fun sym (tok, ch) =
    let
       val start = nextId()
       val stop = nextId()
    in
       NFA {startState = start,
-           stopStates = S.singleton stop,
+           stopStates = IntListMap.singleton (stop, tok),
            edges      = [NFAedge {beginState = start,
                                   label      = NFAinput ch,
                                   endState   = stop}]}
    end
 
-fun concat (NFA {startState = startStateA,
+fun concat (tok,
+            NFA {startState = startStateA,
                  stopStates = stopStatesA,
                  edges = edgesA},
             NFA {startState = startStateB,
@@ -115,14 +124,15 @@ fun concat (NFA {startState = startStateA,
        val between = map (fn s => NFAedge {beginState = s,
                                            endState   = startStateB,
                                            label      = Epsilon})
-                         (S.listItems stopStatesA)
+                         (IntListMap.keys stopStatesA)
     in
        NFA {startState = startStateA,
             stopStates = stopStatesB,
             edges      = edgesA @ edgesB @ between}
     end
 
-fun altern (NFA {startState = startStateA,
+fun altern (tok,
+            NFA {startState = startStateA,
                  stopStates = stopStatesA,
                  edges = edgesA},
             NFA {startState = startStateB,
@@ -130,25 +140,19 @@ fun altern (NFA {startState = startStateA,
                  edges = edgesB}) =
     let
        val start = nextId()
-       val final = nextId()
-       val makeEdgeToFinal = (fn s => NFAedge {beginState = s,
-                                               endState   = final,
-                                               label      = Epsilon})
-       val bStopsToFinal = map makeEdgeToFinal (S.listItems stopStatesB)
-       val aStopsToFinal = map makeEdgeToFinal (S.listItems stopStatesA)
     in
        NFA {startState = start,
-            stopStates = S.singleton final,
+            stopStates = IntListMap.unionWith Utils.first (stopStatesA, stopStatesB),
             edges      = NFAedge {beginState = start,
                                   label      = Epsilon,
                                   endState   = startStateA} ::
                          NFAedge {beginState = start,
                                   label      = Epsilon,
                                   endState   = startStateB} ::
-                         edgesA @ edgesB @ aStopsToFinal @ bStopsToFinal}
+                         edgesA @ edgesB}
     end
 
-fun repeat (NFA {startState, stopStates, edges}) =
+fun repeat (tok, NFA {startState, stopStates, edges}) =
    let
       val epsEdges = foldl (fn (s, acc) => 
                                    (NFAedge {beginState = s,
@@ -159,17 +163,21 @@ fun repeat (NFA {startState, stopStates, edges}) =
                                                 label      = Epsilon})
                                    :: acc)
                            []
-                           (S.listItems stopStates)
+                           (IntListMap.keys stopStates)
    in
       NFA {startState = startState,
            stopStates = stopStates,
            edges      = epsEdges @ edges}
    end
 
-fun regexToNFA (Symbol ch) = sym ch
-  | regexToNFA (Concat (a,b)) = concat(regexToNFA a, regexToNFA b)
-  | regexToNFA (Altern (a,b)) = altern(regexToNFA a, regexToNFA b)
-  | regexToNFA (Repeat a) = repeat(regexToNFA a)
+fun regexToNFA (tok, Symbol ch) = sym (tok, ch)
+  | regexToNFA (tok, Concat (a, b)) = concat(tok,
+                                             regexToNFA (tok, a),
+                                             regexToNFA (tok, b))
+  | regexToNFA (tok, Altern (a, b)) = altern(tok,
+                                             regexToNFA (tok, a),
+                                             regexToNFA (tok, b))
+  | regexToNFA (tok, Repeat a) = repeat(tok, regexToNFA (tok, a))
 
 (* corresponds to "edge" function defined by Appel *)
 fun edge (NFA {edges,...}, state, label1) =
@@ -215,7 +223,7 @@ datatype 'a DFAedge = DFAedge of {beginState : state,
 
 datatype 'a DFA = DFA of {startState : state,
                           edges      : 'a DFAedge list,
-                          stopStates : S.set}
+                          stopStates : LexerSpec.token option IntListMap.map}
 
 (* return list of ints from low to high, inclusive *)
 fun range (low, high) =
@@ -234,8 +242,8 @@ fun charRange (low, high) =
    map Char.chr
        (range (Char.ord low, Char.ord high))
 
-(* FIXME alphabet restricted to lowercase letters, but should be a param *)
-val alphas = charRange (#"a", #"z")
+(* FIXME alphabet restricted to lowercase letters and digits, but should be a param *)
+val alphas = charRange (#"a", #"z") @ charRange (#"0", #"9")
 
 (* true if the two sets share at least one element *)
 fun anyShared (s, t) =
@@ -273,9 +281,25 @@ in
           val unvisited = ref [dfaStartState]
 
           fun findStopStates dfaStatesMap nfaStopStates dfaStates =
-             fromList(map (M.unsafeFind dfaStatesMap)
-                          (T.listItems(T.filter (fn d => anyShared(d,nfaStopStates)) dfaStates)))
-
+             T.foldl (fn (dfaState, stopsMap) =>
+                        let
+                           val toks =
+                              S.foldl (fn (nfaState, acc) =>
+                                         case IntListMap.find(nfaStopStates, nfaState) of
+                                            NONE => acc
+                                          | SOME tok => tok :: acc)
+                                      []
+                                      dfaState
+                        in
+                           if not (null toks)
+                              then (if not (Utils.allEq toks)
+                                       then print "warning! multiple distinct tokens for DFA final state"
+                                    else ()
+                                    ; IntListMap.insert(stopsMap, M.unsafeFind dfaStatesMap dfaState, hd toks))
+                           else stopsMap
+                        end)
+                     IntListMap.empty
+                     dfaStates
        in
           (while (notEmpty unvisited) do
                  let
@@ -313,7 +337,7 @@ fun printNFA (NFA {startState, edges, stopStates}) =
                      print (" " ^ (Int.toString beginState) ^ "-" ^ (inputToString label) ^ "-" ^ (Int.toString endState) ^ "\n"))
              edges;
     print "stops={ ";
-    S.app (fn s => print (Int.toString s ^ " ")) stopStates;
+    S.app (fn s => print (Int.toString s ^ " ")) (fromList(IntListMap.keys stopStates));
     print "}\n")
 
 fun printDFA (DFA {startState, edges, stopStates}) =
@@ -323,7 +347,7 @@ fun printDFA (DFA {startState, edges, stopStates}) =
                      print (" " ^ (Int.toString beginState) ^ "-" ^ (Char.toString ch) ^ "-" ^ (Int.toString endState) ^ "\n"))
              edges;
     print "stops={ ";
-    S.app (fn s => print (Int.toString s ^ " ")) stopStates;
+    S.app (fn s => print (Int.toString s ^ " ")) (fromList(IntListMap.keys stopStates));
     print "}\n")
 
 fun dfaTransition (DFA {edges,...}, state, input) =
@@ -339,19 +363,25 @@ fun dfaTransition (DFA {edges,...}, state, input) =
 fun match' (dfa as DFA {startState, edges, stopStates}, input) =
    let
       fun isFinalState state =
-         S.member(stopStates, state)
+         case IntListMap.find(stopStates, state) of
+            NONE => false
+          | SOME _ => true
 
-      fun succeed position =
-         SOME (List.take(input, position), List.drop(input, position))
+      fun succeed finalState position =
+         let
+            val SOME tok = IntListMap.find(stopStates, finalState)
+         in
+            SOME (tok, List.take(input, position), List.drop(input, position))
+         end
 
       fun loop currentS lastFinalS pos posAtLastFinalS =
          let
             fun finish () =
                if isFinalState currentS
-                  then succeed pos
+                  then succeed currentS pos
                else
                    if lastFinalS >= 0
-                      then succeed posAtLastFinalS
+                      then succeed lastFinalS posAtLastFinalS
                    else NONE
          in
             if pos > (length input - 1) (* at end of input *)
@@ -372,28 +402,40 @@ fun match' (dfa as DFA {startState, edges, stopStates}, input) =
       loop startState ~1 0 ~1 (* yuck how can we make this more typesafe? *)
    end
 
+fun unwrap (DFAinput x) = x
+fun collapse list = String.implode (map unwrap list)
+
 fun match (re, inputString) =
    let
-      fun unwrap (DFAinput x) = x
-      fun collapse list = String.implode (map unwrap list)
-      val nfa = regexToNFA re
+      val nfa = regexToNFA (NONE, re)
       val dfa = nfaToDfa nfa
    in
       case match' (dfa, map DFAinput (String.explode inputString)) of
          NONE => NONE
-       | SOME (acc, rest) => SOME (collapse acc, collapse rest)
+       | SOME (tok, acc, rest) => SOME (collapse acc, collapse rest)
    end
 
-local
-   val (token :: tokens) = map Utils.first LexerSpec.tokens
-   val re = foldl Altern token tokens
-in
-   fun lex s =
-      case match (re, s) of
-         NONE => []
-       | SOME ("", _) => []
-       | SOME (match, rest) => match :: lex rest
-end
+fun makeNfa (regex, token) =
+   regexToNFA(SOME token, regex)
+
+fun combineNFAs (nfa1, nfa2) =
+   altern(NONE, nfa1, nfa2)
+
+(* FIXME what if tokens is [] ? *)
+val nfas = map makeNfa LexerSpec.tokens
+val combinedNFA = foldl combineNFAs (hd nfas) (tl nfas)
+val dfa = nfaToDfa combinedNFA
+
+fun lex s =
+   let
+      fun loop acc inputs =
+         case match' (dfa, inputs) of
+            NONE => rev acc
+          | SOME (_, [], _) => rev acc
+          | SOME (tok, match, rest) =>
+                (Option.valOf tok, collapse match) :: loop acc rest
+   in
+      (loop [] (map DFAinput (String.explode s)))
+   end
 
 end
-

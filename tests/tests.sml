@@ -1,49 +1,77 @@
 structure MatchTests =
 struct
 
-structure LexerSpec: LEXER_SPEC =
+open Regexp
+
+structure LexerSpec =
    struct
-      open Regexp
       datatype token = Num | Id
-      val tokens = [(Repeat(Altern(Altern(Symbol #"z", Symbol #"x"), Symbol #"y")),Num)
-                   ,(Repeat(Altern(Altern(Symbol #"a", Symbol #"b"), Symbol #"c")),Id)]
+      local
+         (* binary numbers *)
+         val num = Concat(Symbol #"1",Repeat(Altern(Symbol #"0",Symbol #"1")))
+         (* identifiers *)
+         val id = Repeat(Altern(Symbol #"a",Altern(Symbol #"b",Symbol #"c")))
+      in
+         val tokens = [(num, Num), (id, Id)]
+      end
    end
 
-structure LexLuthor = LexLuthorFn(LexerSpec)
+structure LexLuthor = LexLuthorFn(LexerSpec: LEXER_SPEC)
 
 structure MatchShowEq =
    struct
       type t = (string * string) option
-
-      fun eq (NONE, NONE) = true
-        | eq (SOME (x1,x2), SOME (y1,y2)) = x1 = y1 andalso x2 = y2
-        | eq _ = false
-
+      val eq = (op =)
       fun show NONE = "NONE"
         | show (SOME (x, y)) = "SOME (\"" ^ x ^ "\",\"" ^ y ^ "\")"
    end
-
-structure Test = TestFn (structure Show = MatchShowEq
-                         structure Eq = MatchShowEq)
-
-open Test
-open LexLuthor
-
-val tests =
+structure M = TestFn (structure Show = MatchShowEq
+                              structure Eq = MatchShowEq)
+val match = LexLuthor.match
+val regexTests =
    let
       val a = Symbol #"a"
       val b = Symbol #"b"
    in
-      TGroup
+      M.TGroup
           ("regexps",
-           [Case ("symbol", match(a, "a"), SOME ("a","")),
-            Case ("concat", match(Concat(a, b), "abc"), SOME ("ab","c")),
-            Case ("altern", match(Altern(a, b), "ab"), SOME ("a", "b")),
-            Case ("repeat", match(Repeat(a), "aaaab"), SOME ("aaaa", "b"))])
+           [M.Case ("symbol", match(a, "a"), SOME ("a","")),
+            M.Case ("concat", match(Concat(a, b), "abc"), SOME ("ab","c")),
+            M.Case ("altern", match(Altern(a, b), "ab"), SOME ("a", "b")),
+            M.Case ("repeat", match(Repeat(a), "aaaab"), SOME ("aaaa", "b"))])
    end
 
+structure LexerShowEq =
+   struct
+      type t = (LexerSpec.token * string) list
 
-fun main _ = (runTests true tests
+      val eq = (op =)
+
+      fun show lst =
+         let
+            fun s (LexerSpec.Id, str) = "(" ^ str ^ ",Id)"
+              | s (LexerSpec.Num, str) = "(" ^ str ^ ",Num)"
+            val strings = Utils.interleave (List.map s lst) ","
+         in
+            "[" ^ (String.concat strings) ^ "]"
+         end
+   end
+
+structure L = TestFn (structure Show = LexerShowEq
+                              structure Eq = LexerShowEq)
+
+val lex = LexLuthor.lex
+
+val lexerTests =
+   L.TGroup
+       ("lexer",
+        [L.Case ("single num", lex "1010", [(LexerSpec.Num, "1010")]),
+         L.Case ("single id", lex "ab", [(LexerSpec.Id, "ab")]),
+         L.Case ("mixed", lex "100100abab", [(LexerSpec.Num, "100100"),
+                                                     (LexerSpec.Id, "abab")])])
+
+fun main _ = (M.runTests true regexTests
+              ; L.runTests true lexerTests
               ; OS.Process.success)
 
 end
