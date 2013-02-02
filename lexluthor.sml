@@ -9,6 +9,7 @@ structure Regexp =
        | Concat of t * t
        | Altern of t * t
        | Repeat of t
+       | Epsilon
    end
 
 signature LEXER_SPEC =
@@ -20,7 +21,7 @@ signature LEXER_SPEC =
 functor LexLuthorFn(LexerSpec: LEXER_SPEC) =
 struct
 
-open Regexp
+structure RE = Regexp
 
 (* S is a set of states (ints), T is a set of S (set of sets of states) *)
 structure S : ORD_SET = IntListSet
@@ -87,6 +88,18 @@ in
           ; id')
       end
 end
+
+fun epsilon tok =
+   let
+      val start = nextId()
+      val stop = nextId();
+   in
+      NFA {startState = start,
+           stopStates = IntListMap.singleton (stop, tok),
+           edges      = [NFAedge {beginState = start,
+                                  label      = Epsilon,
+                                  endState   = stop}]}
+   end
 
 fun sym (tok, ch) =
    let
@@ -157,14 +170,15 @@ fun repeat (tok, NFA {startState, stopStates, edges}) =
            edges      = epsEdges @ edges}
    end
 
-fun regexToNFA (tok, Symbol ch) = sym (tok, ch)
-  | regexToNFA (tok, Concat (a, b)) = concat(tok,
+fun regexToNFA (tok, RE.Symbol ch) = sym (tok, ch)
+  | regexToNFA (tok, RE.Epsilon) = epsilon tok
+  | regexToNFA (tok, RE.Concat (a, b)) = concat(tok,
                                              regexToNFA (tok, a),
                                              regexToNFA (tok, b))
-  | regexToNFA (tok, Altern (a, b)) = altern(tok,
+  | regexToNFA (tok, RE.Altern (a, b)) = altern(tok,
                                              regexToNFA (tok, a),
                                              regexToNFA (tok, b))
-  | regexToNFA (tok, Repeat a) = repeat(tok, regexToNFA (tok, a))
+  | regexToNFA (tok, RE.Repeat a) = repeat(tok, regexToNFA (tok, a))
 
 (* corresponds to "edge" function defined by Appel *)
 fun edge (NFA {edges,...}, state, label1) =
