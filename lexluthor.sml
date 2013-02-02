@@ -184,12 +184,8 @@ fun closure (nfa, states) =
    let
       fun epsEdge s = edge(nfa, s, Epsilon)
       fun oneStep s = S.union(s,foldl S.union S.empty (map epsEdge (S.listItems s)))
-      fun loop t t' =
-         if S.equal(t, t')
-            then t
-         else loop t' (oneStep t')
    in
-      loop states (oneStep states)
+      HigherOrder.fixedPoint (states, oneStep, S.equal)
    end
 
 (* follow an implicit DFA edge and return the new DFA state *)
@@ -201,7 +197,7 @@ fun dfaEdge (nfa, states, input) =
                          (map e (S.listItems states)))
    end
 
-(* DFAs as distinct type from NFAs, note that DFAInput does not incude epsiplon *)
+(* DFAs as distinct type from NFAs, note that DFAInput does not incude epsilon *)
 datatype 'a DFAinput = DFAinput of 'a
 
 datatype 'a DFAedge = DFAedge of {beginState : state,

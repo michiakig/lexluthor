@@ -1,6 +1,7 @@
 Library
     structure ExtList
     structure Pair
+    structure HigherOrder
     functor ExtOrdMapFn
 is
     utils.sml
