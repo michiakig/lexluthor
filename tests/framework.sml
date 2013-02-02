@@ -36,10 +36,10 @@ functor TestFn(structure Show: SHOW
         | showResults (RGroup (name, results)) =
            let
               val results = map showResults results
-              val verbose = map Utils.first results
-              val concise = map Utils.second results
+              val verbose = map Pair.first results
+              val concise = map Pair.second results
            in
-              (String.concat (Utils.interleave (name :: verbose) "\n"),
+              (String.concat (ExtList.interleave (name :: verbose) "\n"),
                name ^ ": " ^ (String.concat concise)) 
            end
 

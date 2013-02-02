@@ -26,7 +26,7 @@ structure MatchShowEq =
         | show (SOME (x, y)) = "SOME (\"" ^ x ^ "\",\"" ^ y ^ "\")"
    end
 structure M = TestFn (structure Show = MatchShowEq
-                              structure Eq = MatchShowEq)
+                      structure Eq = MatchShowEq)
 val match = LexLuthor.match
 val regexTests =
    let
@@ -51,14 +51,14 @@ structure LexerShowEq =
          let
             fun s (LexerSpec.Id, str) = "(" ^ str ^ ",Id)"
               | s (LexerSpec.Num, str) = "(" ^ str ^ ",Num)"
-            val strings = Utils.interleave (List.map s lst) ","
+            val strings = ExtList.interleave (List.map s lst) ","
          in
             "[" ^ (String.concat strings) ^ "]"
          end
    end
 
 structure L = TestFn (structure Show = LexerShowEq
-                              structure Eq = LexerShowEq)
+                      structure Eq = LexerShowEq)
 
 val lex = LexLuthor.lex
 

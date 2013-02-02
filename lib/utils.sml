@@ -1,4 +1,6 @@
-structure Utils =
+(* extensions to the standard basis and SML/NJ lib *)
+
+structure ExtList =
    struct
 
       fun interleave l i =
@@ -10,18 +12,20 @@ structure Utils =
             recur l []
          end
 
-      fun first (x,_) = x
-      fun second (_,y) = y
-
       fun allEq [] = true
-        | allEq (x :: []) = true
-        | allEq (x :: y :: xs) =
-           x = y andalso allEq xs
+        | allEq l = List.all (fn x => x = hd l) l
 
    end
 
-functor MapUtilsFn(Map: ORD_MAP) =
+structure Pair =
    struct
+      fun first (x,_) = x
+      fun second (_,y) = y
+   end
+
+functor ExtOrdMapFn(Map: ORD_MAP) =
+   struct
+      open Map
       fun unsafeFind m k = Option.valOf(Map.find(m, k))
-      fun keys m = map Utils.first (Map.listItemsi m)
+      fun keys m = List.map Pair.first (Map.listItemsi m)
    end

@@ -31,33 +31,20 @@ structure T : ORD_SET =
           val compare = S.compare
        end)
 
-(* M is a map with keys of type set of states *)
-structure M: ORD_MAP =
-   ListMapFn(
+structure M = ExtOrdMapFn(ListMapFn(
        struct
           type ord_key = S.set
           val compare = S.compare
-       end)
-structure MUtils = MapUtilsFn(M)
-structure M =
-   struct
-      open MUtils
-      open M
-   end
+       end))
 
-structure IntListMapUtils = MapUtilsFn(IntListMap)
-structure IntListMap =
-   struct
-      open IntListMap
-      open IntListMapUtils
-   end
+structure IntListMap = ExtOrdMapFn(IntListMap)
 
 fun fromList l = S.addList(S.empty,l)
 
 fun setToString s =
    let
       val items = S.listItems s
-      val commas = Utils.interleave (map Int.toString items) ","
+      val commas = ExtList.interleave (map Int.toString items) ","
    in
       "{" ^ String.concat(commas) ^ "}"
    end
@@ -67,7 +54,7 @@ fun mapToString m =
       val items = M.listItemsi m
       fun pairToS (s, i) = (setToString s) ^ ":" ^ (Int.toString i)
    in
-      "{" ^ (String.concat(Utils.interleave (map pairToS items) ",")) ^ "}"
+      "{" ^ (String.concat(ExtList.interleave (map pairToS items) ",")) ^ "}"
    end
 
 type state = int
@@ -142,7 +129,7 @@ fun altern (tok,
        val start = nextId()
     in
        NFA {startState = start,
-            stopStates = IntListMap.unionWith Utils.first (stopStatesA, stopStatesB),
+            stopStates = IntListMap.unionWith Pair.first (stopStatesA, stopStatesB),
             edges      = NFAedge {beginState = start,
                                   label      = Epsilon,
                                   endState   = startStateA} ::
@@ -292,7 +279,7 @@ in
                                       dfaState
                         in
                            if not (null toks)
-                              then (if not (Utils.allEq toks)
+                              then (if not (ExtList.allEq toks)
                                        then print "warning! multiple distinct tokens for DFA final state"
                                     else ()
                                     ; IntListMap.insert(stopsMap, M.unsafeFind dfaStatesMap dfaState, hd toks))

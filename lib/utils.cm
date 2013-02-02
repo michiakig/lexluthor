@@ -1,6 +1,7 @@
 Library
-    structure Utils
-    functor MapUtilsFn
+    structure ExtList
+    structure Pair
+    functor ExtOrdMapFn
 is
     utils.sml
     $/basis.cm
