@@ -3,13 +3,13 @@ Library
     functor TestFn
     structure MatchTests
     structure RegExpTests
-    structure LexerTests
+    structure SimpleLexerTests
     structure Main
 is
     main.sml
     match.sml
     regexp.sml
-    lexer.sml
+    simplelexer.sml
     framework.sml
     ../lexluthor.cm
     ../lib/typeclasses.cm

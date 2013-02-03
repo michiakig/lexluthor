@@ -3,6 +3,6 @@ structure Main =
    struct
       fun main _ = (MatchTests.doTestRun false
                     ; RegExpTests.doTestRun false
-                    ; LexerTests.doTestRun false
+                    ; SimpleLexerTests.doTestRun false
                     ; OS.Process.success)
    end

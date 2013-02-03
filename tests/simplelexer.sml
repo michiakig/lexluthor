@@ -1,4 +1,4 @@
-structure LexerTests: TESTS =
+structure SimpleLexerTests: TESTS =
 struct
 
 open BasicRegExpSyntax
