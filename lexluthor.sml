@@ -41,11 +41,11 @@ structure BasicRegExpSyntax =
       in
          fun desugar (R.Char ch) = Symbol ch
            | desugar (R.Star syn) = Repeat (desugar syn)
-           | desugar (R.Alt syns) = reduce Altern (map desugar syns)
-           | desugar (R.Concat syns) = reduce Concat (map desugar syns)
+           | desugar (R.Alt syns) = reduce Altern (rev (map desugar syns))
+           | desugar (R.Concat syns) = reduce Concat (rev (map desugar syns))
            | desugar (R.MatchSet charSet) =
-             reduce Concat (map Symbol
-                                (R.CharSet.listItems charSet))
+             reduce Altern (rev (map Symbol
+                                     (R.CharSet.listItems charSet)))
            | desugar (R.Plus syn) = let val b = (desugar syn)
                                     in Altern (b, Repeat b)
                                     end
@@ -54,6 +54,8 @@ structure BasicRegExpSyntax =
                                       end
            | desugar (R.Group syn) = desugar syn
       end
+
+      fun unsafeDesugar s = desugar(unsafeParse s)
 
    end
 

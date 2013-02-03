@@ -1,6 +1,6 @@
 #! /bin/bash
 
-ml-build tests.cm MatchTests.main tests
+ml-build tests.cm Main.main tests
 
 if [ $? -eq 0 ]; then
     echo "*** build successful, running tests ***"

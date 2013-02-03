@@ -1,8 +1,15 @@
 Library
+    signature TESTS
     functor TestFn
     structure MatchTests
+    structure RegExpTests
+    structure LexerTests
+    structure Main
 is
-    tests.sml
+    main.sml
+    match.sml
+    regexp.sml
+    lexer.sml
     framework.sml
     ../lexluthor.cm
     ../lib/typeclasses.cm

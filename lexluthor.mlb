@@ -5,5 +5,8 @@ lib/utils.sml
 lib/typeclasses.sml
 lexluthor.sml
 tests/framework.sml
-tests/tests.sml
-tests/runTests.sml
+tests/match.sml
+tests/lexer.sml
+tests/regexp.sml
+tests/main.sml
+tests/mlton.sml

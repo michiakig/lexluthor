@@ -2,6 +2,11 @@
  * a very lightweight testing framework
  *)
 
+signature TESTS =
+   sig
+      val doTestRun: bool -> unit
+   end
+
 functor TestFn(structure Show: SHOW
                structure Eq: EQ
                sharing type Show.t = Eq.t) =
@@ -30,13 +35,13 @@ functor TestFn(structure Show: SHOW
          ("Passed: " ^ name, ".")
        | showResults (Fail (Case (name, actual, expected))) =
           ("FAILED: " ^ name ^
-           " expected: " ^ (show expected) ^
+           ", expected: " ^ (show expected) ^
            ", but actually got: " ^ (show actual),
            "F")
         | showResults (RGroup (name, results)) =
            let
               val results = map showResults results
-              val verbose = map Pair.first results
+              val verbose = (map (fn x => "  " ^ x) (map Pair.first results))
               val concise = map Pair.second results
            in
               (String.concat (ExtList.interleave (name :: verbose) "\n"),
@@ -50,7 +55,7 @@ functor TestFn(structure Show: SHOW
             (if verbose
                 then print v
              else print c
-             ; print "\ndone.\n")
+            ; print "\n")
          end
    end
 
