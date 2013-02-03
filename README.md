@@ -3,16 +3,17 @@
 lexluthor is a library for building lexical analyzers, written in
 Standard ML and primarily designed to explore how lexer generators
 work "from the ground up", i.e. without using any existing tools (such
-as lex or ML-Lex) or any existing regular expression libraries (such
+as ML-Lex) or any existing regular expression matching engines (such
 as the one provided with SML/NJ).
 
 ## a library, not a lexer generator
 
-Specifically, there is no front-end parser for regular expressions
-(tokens must be described using an AST datatype) and no code
-generator. Instead, regular expressions are translated to NFAs and
-then to DFAs in memory. This greatly reduces the complexity of the
-code, but makes it pretty unwieldy to actually use.
+A front-end is not included, so there's no parser for regular
+expressions, although the one from SML/NJ's library can be
+used. Furthermore there is no code generation: regular expressions are
+translated to NFAs and then to DFAs in memory at start up. This
+greatly reduces the complexity of the code, but makes it inappropriate
+for real world use.
 
 ## current status
 

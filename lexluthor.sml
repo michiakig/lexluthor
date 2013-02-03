@@ -2,26 +2,71 @@
 (* bare minimal regular expressions:
    literal, concatenation, alternation, repetition (Kleene closure) *)
 
-structure Regexp =
+structure BasicRegExpSyntax =
    struct
-      datatype t =
+
+      structure R = RegExpSyntax
+
+      datatype syntax =
          Symbol of char
-       | Concat of t * t
-       | Altern of t * t
-       | Repeat of t
+       | Concat of syntax * syntax
+       | Altern of syntax * syntax
+       | Repeat of syntax
        | Epsilon
+
+      val getc: string -> (char, int) StringCvt.reader =
+         fn s => fn i =>
+            if i < String.size s
+               then SOME(String.sub(s, i), i+1)
+            else NONE
+
+      val parse: string -> R.syntax option =
+         fn s =>
+            case (AwkSyntax.scan (getc s)) 0 of
+               NONE => NONE
+             | SOME (re, _) => SOME re
+
+      fun unsafeParse s = Option.valOf(parse s)
+
+      (*
+      not supported:
+
+        | Interval of (syntax * int * int option)
+        | NonmatchSet of CharSet.set
+        | Begin
+        | End
+      *)
+      local
+         fun reduce f l = foldl f (hd l) (tl l)
+      in
+         fun desugar (R.Char ch) = Symbol ch
+           | desugar (R.Star syn) = Repeat (desugar syn)
+           | desugar (R.Alt syns) = reduce Altern (map desugar syns)
+           | desugar (R.Concat syns) = reduce Concat (map desugar syns)
+           | desugar (R.MatchSet charSet) =
+             reduce Concat (map Symbol
+                                (R.CharSet.listItems charSet))
+           | desugar (R.Plus syn) = let val b = (desugar syn)
+                                    in Altern (b, Repeat b)
+                                    end
+           | desugar (R.Option syn) = let val b = (desugar syn)
+                                      in Altern (b, Epsilon)
+                                      end
+           | desugar (R.Group syn) = desugar syn
+      end
+
    end
 
 signature LEXER_SPEC =
    sig
       eqtype token
-      val tokens: (Regexp.t * token) list
+      val tokens: (BasicRegExpSyntax.syntax * token) list
    end
 
 functor LexLuthorFn(LexerSpec: LEXER_SPEC) =
 struct
 
-structure RE = Regexp
+structure RE = BasicRegExpSyntax
 
 (* S is a set of states (ints), T is a set of S (set of sets of states) *)
 structure S : ORD_SET = IntListSet
@@ -154,7 +199,7 @@ fun altern (tok,
 
 fun repeat (tok, NFA {startState, stopStates, edges}) =
    let
-      val epsEdges = foldl (fn (s, acc) => 
+      val epsEdges = foldl (fn (s, acc) =>
                                    (NFAedge {beginState = s,
                                              endState   = startState,
                                              label      = Epsilon})

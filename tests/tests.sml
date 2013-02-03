@@ -1,7 +1,7 @@
 structure MatchTests =
 struct
 
-open Regexp
+open BasicRegExpSyntax
 
 structure LexerSpec =
    struct
@@ -69,7 +69,7 @@ val lexerTests =
         [L.Case ("single num", lex "1010", [(LexerSpec.Num, "1010")]),
          L.Case ("single id", lex "ab", [(LexerSpec.Id, "ab")]),
          L.Case ("mixed", lex "100100abab", [(LexerSpec.Num, "100100"),
-                                                     (LexerSpec.Id, "abab")])])
+                                             (LexerSpec.Id, "abab")])])
 
 fun main _ = (M.runTests true regexTests
               ; L.runTests true lexerTests

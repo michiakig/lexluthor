@@ -1,9 +1,10 @@
 Library
     signature LEXER_SPEC
     functor LexLuthorFn
-    structure Regexp
+    structure BasicRegExpSyntax
 is
     lexluthor.sml
     lib/utils.cm
     $/basis.cm
     $/smlnj-lib.cm
+    $/regexp-lib.cm
