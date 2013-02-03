@@ -2,6 +2,7 @@ Library
     signature LEXER_SPEC
     functor LexLuthorFn
     structure BasicRegExpSyntax
+    structure CharSet
 is
     lexluthor.sml
     lib/utils.cm

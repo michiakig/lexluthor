@@ -59,10 +59,17 @@ structure BasicRegExpSyntax =
 
    end
 
+structure CharSet =
+   ListSetFn(struct
+                type ord_key = char
+                val compare = Char.compare
+             end: ORD_KEY)
+
 signature LEXER_SPEC =
    sig
       eqtype token
       val tokens: (BasicRegExpSyntax.syntax * token) list
+      val alphabet: CharSet.set
    end
 
 functor LexLuthorFn(LexerSpec: LEXER_SPEC) =
