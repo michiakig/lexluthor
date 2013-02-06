@@ -36,7 +36,11 @@ structure SimpleLexerShowEq =
 structure S = TestFn (structure Show = SimpleLexerShowEq
                       structure Eq = SimpleLexerShowEq)
 
-val lex = SimpleLexLuthor.lex
+local
+   val lexer = SimpleLexLuthor.mkLexer ()
+in
+   fun lex s = SimpleLexLuthor.lex (lexer, s)
+end
 
 val lexerTests =
    S.TGroup

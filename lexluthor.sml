@@ -287,7 +287,7 @@ fun charRange (low, high) =
        (range (Char.ord low, Char.ord high))
 
 (* FIXME alphabet restricted to lowercase letters and digits, but should be a param *)
-val alphas = charRange (#"a", #"z") @ charRange (#"0", #"9")
+val alphas = charRange (#"a", #"z") @ charRange (#"0", #"9") @ [#" ", #"(", #")"]
 
 (* true if the two sets share at least one element *)
 fun anyShared (s, t) =
@@ -465,12 +465,45 @@ fun makeNfa (regex, token) =
 fun combineNFAs (nfa1, nfa2) =
    altern(NONE, nfa1, nfa2)
 
-(* FIXME what if tokens is [] ? *)
-val nfas = map makeNfa LexerSpec.tokens
-val combinedNFA = foldl combineNFAs (hd nfas) (tl nfas)
-val dfa = nfaToDfa combinedNFA
+fun sizeNFA (NFA {edges=edges,...}) =
+    let
+       val states = foldl (fn (NFAedge {beginState=b,endState=e,...},acc) =>
+                              S.add(S.add(acc, b), e))
+                          S.empty
+                          edges
+    in
+       (S.numItems states, length edges)
+    end
 
-fun lex s =
+fun sizeDFA (DFA {edges=edges,...}) =
+    let
+       val states = foldl (fn (DFAedge {beginState=b,endState=e,...},acc) =>
+                              S.add(S.add(acc, b), e))
+                          S.empty
+                          edges
+    in
+       (S.numItems states, length edges)
+    end
+
+datatype lexer = Lexer of char DFA
+
+fun mkLexer () =
+    let
+       (* FIXME what if tokens is [] ? *)
+       val nfas = map makeNfa LexerSpec.tokens
+       val combinedNFA = foldl combineNFAs (hd nfas) (tl nfas)
+       val (statesNFA,edgesNFA) = sizeNFA combinedNFA
+       val _ = print ("NFA=" ^ Int.toString statesNFA ^ " states,"
+                      ^ Int.toString edgesNFA ^ " edges,")
+       val dfa = nfaToDfa combinedNFA
+       val (statesDFA,edgesDFA) = sizeDFA dfa
+       val _ = print ("DFA=" ^ Int.toString statesDFA ^ " states,"
+                      ^ Int.toString edgesDFA ^ " edges\n")
+    in
+       Lexer dfa
+    end
+
+fun lex (Lexer dfa, s) =
    let
       fun loop acc inputs =
          case match' (dfa, inputs) of
