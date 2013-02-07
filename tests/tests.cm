@@ -1,6 +1,7 @@
 Library
     signature TESTS
     functor TestFn
+    structure SimpleGraphTests
     structure MatchTests
     structure RegExpTests
     structure SimpleLexerTests
@@ -10,8 +11,10 @@ is
     match.sml
     regexp.sml
     simplelexer.sml
+    graphs.sml
     framework.sml
     ../lexluthor.cm
     ../lib/typeclasses.cm
     ../lib/utils.cm
+    ../lib/graphs.cm
     $/basis.cm

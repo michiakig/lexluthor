@@ -112,32 +112,3 @@ structure ListGraph :> DIRECTED_WEIGHTED_GRAPH =
          end
 
    end
-
-structure G = DirectedGraphFn(ListGraph)
-
-val tree = G.addEdges(G.empty,
-                      [(1,2),(1,3),(2,4),(2,5),(3,6),(3,7)]);
-
-val cycle = G.addEdges(G.empty,
-                       [(1,2),(2,3),(3,4),(4,5),(5,6),(6,1)]);
-
-fun breadthFirstS (g, n, visitFn) =
-   let
-      fun notMember [] x = true
-        | notMember (y :: ys) x =
-           if x = y
-              then false
-           else notMember ys x
-         
-      fun recur (visited, []) = ()
-        | recur (visited, u :: unvisited) =
-           let
-              val children = G.neighbors (g, u)
-           in
-              (visitFn u
-               ; recur (u :: visited, unvisited @
-                                      List.filter (notMember visited) children))
-           end
-   in
-      recur ([], [n])
-   end
