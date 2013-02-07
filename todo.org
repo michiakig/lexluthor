@@ -1,0 +1,25 @@
+
+* DONE tests for regexp matcher
+* DONE modules
+* DONE actual lexer component
+* DONE extended regexes
+* DONE graph lib
+* DONE tests for lexer
+
+* TODO more tests for lexer
+
+* TODO Improve ease of use [0%]
+** TODO match EOL (can't do comments without this?)
+** TODO whitespace
+** TODO line numbers
+** TODO error handling
+
+* TODO Improve performace [0%]
+** TODO profiling (http://mlton.org/Profiling)
+** TODO refactor NFA and DFA to use graph lib
+** TODO optimize graph/automata representation 
+** TODO DFA minimization
+** TODO regexp directly to DFA
+
+** TODO error handling/messages
+** TODO examples
