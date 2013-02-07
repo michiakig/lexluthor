@@ -3,8 +3,10 @@ $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 $(SML_LIB)/smlnj-lib/RegExp/regexp-lib.mlb
 lib/utils.sml
 lib/typeclasses.sml
+lib/graphs.sml
 lexluthor.sml
 tests/framework.sml
+tests/graphs.sml
 tests/match.sml
 tests/simplelexer.sml
 tests/regexp.sml

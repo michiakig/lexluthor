@@ -1,5 +1,7 @@
 #! /bin/bash
 
+cd tests
+
 ml-build tests.cm Main.main tests
 
 if [ $? -eq 0 ]; then
@@ -7,3 +9,5 @@ if [ $? -eq 0 ]; then
     sml @SMLload=tests.x86-darwin
     rm tests.x86-darwin
 fi
+
+cd ..
