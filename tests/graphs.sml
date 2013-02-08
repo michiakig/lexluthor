@@ -56,10 +56,15 @@ in
       end
 end
 
-val tests =
-    IntTester.TGroup ("simple graphs",
-            [IntTester.Case ("tree1", depthFirstSearch (tree, 1, 7), SOME 7)])
+structure I = IntTester
 
-fun doTestRun v = IntTester.runTests v tests
+val tests =
+    I.TGroup ("simple graphs",
+            [I.Case ("tree1", depthFirstSearch (tree, 1, 7), SOME 7),
+             I.Case ("tree2", depthFirstSearch (tree, 1, 9), NONE),
+             I.Case ("tree3", breadthFirstSearch (tree, 1, 9), NONE),
+             I.Case ("tree4", breadthFirstSearch (tree, 1, 7), SOME 7)])
+
+fun doTestRun v = I.runTests v tests
 
 end
