@@ -41,9 +41,6 @@ functor DirectedGraphFn(G: DIRECTED_WEIGHTED_GRAPH): DIRECTED_GRAPH =
       fun neighbors (g, n) = G.neighbors (g, n, 0)
 
       fun adjacent (g, n1, n2) = G.adjacent (g, n1, n2)
-         (* case G.adjacent (g, n1, n2) of *)
-         (*    NONE => false *)
-         (*  | SOME _ => true *)
 
    end
 
