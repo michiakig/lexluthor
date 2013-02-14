@@ -1,8 +1,0 @@
-$(SML_LIB)/basis/basis.mlb
-$(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
-lib/utils.sml
-lib/typeclasses.sml
-lib/graphs.sml
-tests/framework.sml
-tests/graphs.sml
-tests/mlton.sml

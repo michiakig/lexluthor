@@ -1,14 +1,3 @@
-structure IntOptionShowEq =
-   struct
-      type t = int option
-      fun show NONE = "NONE"
-        | show (SOME x) = "SOME " ^ Int.toString x
-      val eq = op =
-   end
-
-structure IntOptionTester = TestFn(structure Show = IntOptionShowEq
-                                   structure Eq = IntOptionShowEq)
-
 structure SimpleGraphTests =
 struct
 
@@ -68,17 +57,3 @@ val tests =
 fun doTestRun v = I.runTests v tests
 
 end
-
-functor DirectedWeightedGraphTesterFn(G: DIRECTED_WEIGHTED_GRAPH) =
-   struct
-      structure I = IntOptionTester
-      fun doTestRun v =
-          let
-             val g = G.addEdge(G.empty, 1, 2, "foo")
-          in
-             I.runTests v (I.TGroup ("graph test functor",
-                                     [I.Case ("move", G.move (g, 1, "foo"), SOME 2)]))
-          end
-   end
-
-structure ListGraphTests = DirectedWeightedGraphTesterFn(ListGraph)
