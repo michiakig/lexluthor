@@ -2,6 +2,7 @@ Library
     signature TESTS
     functor TestFn
     structure SimpleGraphTests
+    structure ListGraphTests
     structure MatchTests
     structure RegExpTests
     structure SimpleLexerTests
