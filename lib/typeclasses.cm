@@ -3,3 +3,5 @@ Library
     signature EQ
 is
     typeclasses.sml
+    ../lib/utils.cm
+    $/basis.cm

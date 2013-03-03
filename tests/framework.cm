@@ -1,0 +1,8 @@
+Library
+    signature TESTS
+    functor TestFn
+is
+    framework.sml
+    ../lib/typeclasses.cm
+    ../lib/utils.cm
+    $/basis.cm
