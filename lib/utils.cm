@@ -3,6 +3,8 @@ Library
     structure Pair
     structure HigherOrder
     functor ExtOrdMapFn
+    functor SetShowFn
+    functor MapShowFn
 is
     utils.sml
     $/basis.cm
