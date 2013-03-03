@@ -1,7 +1,11 @@
 Library
     signature SHOW
     signature EQ
+
+    functor SetShowFn
+    functor MapShowFn
 is
     typeclasses.sml
     ../lib/utils.cm
     $/basis.cm
+    $/smlnj-lib.cm

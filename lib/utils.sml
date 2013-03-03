@@ -76,31 +76,6 @@ functor ExtOrdMapFn(Map: ORD_MAP) =
       fun keys m = List.map Pair.first (Map.listItemsi m)
    end
 
-functor MapShowFn(structure Map: ORD_MAP
-                  val showKey: Map.Key.ord_key -> string) =
-   struct
-      fun showMap showVal m =
-          let
-             val items = Map.listItemsi m
-             fun showPair (k, v) = "(" ^ showKey k ^ "," ^ showVal v ^ ")"
-             val strs = map showPair items
-          in
-             "{" ^ String.concat (ExtList.interleave strs ",") ^ "}"
-          end
-   end
-
-functor SetShowFn(structure Set: ORD_SET
-                  val show: Set.item -> string) =
-   struct
-      fun showSet s =
-          let
-             val items = Set.listItems s
-             val strs = map show items
-          in
-             "{" ^ String.concat (ExtList.interleave strs ",") ^ "}"
-          end
-   end
-
 structure HigherOrder =
    struct
 
