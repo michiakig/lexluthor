@@ -17,7 +17,6 @@ is
     graphs/search.sml
     framework.sml
     ../lexluthor.cm
-    ../lib/typeclasses.cm
-    ../lib/utils.cm
+    ../lib/lib.cm
     ../lib/graphs.cm
     $/basis.cm

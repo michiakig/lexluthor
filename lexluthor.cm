@@ -4,7 +4,7 @@ Library
     structure BasicRegExpSyntax
 is
     lexluthor.sml
-    lib/utils.cm
+    lib/lib.cm
     $/basis.cm
     $/smlnj-lib.cm
     $/regexp-lib.cm

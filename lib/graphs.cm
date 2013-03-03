@@ -4,7 +4,7 @@ Library
     functor DirectedGraphFn
     structure ListGraph
 is
-    typeclasses.cm
+    lib.cm
     graphs.sml
     $/basis.cm
     $/smlnj-lib.cm

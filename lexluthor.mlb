@@ -1,12 +1,14 @@
 $(SML_LIB)/basis/basis.mlb
 $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
 $(SML_LIB)/smlnj-lib/RegExp/regexp-lib.mlb
-lib/utils.sml
-lib/typeclasses.sml
+lib/lib.sml
 lib/graphs.sml
 lexluthor.sml
 tests/framework.sml
-tests/graphs.sml
+tests/graphs/testers.sml
+tests/graphs/search.sml
+tests/graphs/simple.sml
+tests/graphs/mlton.sml
 tests/match.sml
 tests/simplelexer.sml
 tests/regexp.sml

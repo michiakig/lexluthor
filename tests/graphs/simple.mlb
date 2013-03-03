@@ -1,7 +1,6 @@
 $(SML_LIB)/basis/basis.mlb
 $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
-../../lib/utils.sml
-../../lib/typeclasses.sml
+../../lib/lib.sml
 ../../lib/graphs.sml
 ../framework.sml
 testers.sml
