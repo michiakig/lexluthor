@@ -17,7 +17,7 @@ functor TestFn(structure Show: SHOW
       type t = Show.t
 
       datatype test =
-         Case of string * t * t
+         Case of string * {actual: t, expect: t}
        | TGroup of string * test list
 
       datatype result =
@@ -25,8 +25,8 @@ functor TestFn(structure Show: SHOW
        | Fail of test
        | RGroup of string * result list
 
-      fun test (c as Case (_, actual, expected)) =
-         if eq (actual, expected)
+      fun test (c as Case (_, {actual, expect})) =
+         if eq (actual, expect)
             then Pass c
          else Fail c
        | test (g as TGroup (name, tests)) =
@@ -35,18 +35,18 @@ functor TestFn(structure Show: SHOW
       fun showResults result =
           let
              fun show' d x = concat (replicate d " ") ^ show x
-             fun showResults' depth (Pass (Case (name, _, _))) =
+             fun showResults' depth (Pass (Case (name, _))) =
                  let
                     val verbose = concat (replicate depth " ") ^ "Passed: " ^ name
                     val concise = "."
                  in
                     (verbose, concise)
                  end
-               | showResults' depth (Fail (Case (name, actual, expected))) =
+               | showResults' depth (Fail (Case (name, {actual, expect}))) =
                  let
                     val verbose = concat (replicate depth " ") ^
                                   "FAILED: " ^ name ^
-                                  ", expected: " ^ (show expected) ^
+                                  ", expected: " ^ (show expect) ^
                                   ", but actually got: " ^ (show actual)
                     val concise = "F"
                  in

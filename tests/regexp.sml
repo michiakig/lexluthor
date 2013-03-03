@@ -25,21 +25,27 @@ val d = unsafeDesugar
 val tests =
     R.TGroup
        ("desugar",
-        [R.Case ("char", d "a", Symbol #"a"),
-         R.Case ("star", d "a*", Repeat(Symbol #"a")),
-         R.Case ("alt", d "a|b", Altern(Symbol #"a", Symbol #"b")),
-         R.Case ("concat", d "ab", Concat(Symbol #"a", Symbol #"b")),
+        [R.Case ("char", {actual = d "a", expect = Symbol #"a"}),
+         R.Case ("star", {actual = d "a*", expect = Repeat(Symbol #"a")}),
+         R.Case ("alt", {actual = d "a|b", expect = Altern(Symbol #"a", Symbol #"b")}),
+         R.Case ("concat", {actual = d "ab", expect = Concat(Symbol #"a", Symbol #"b")}),
 
-         R.Case ("matchset", d "[abc]", Altern(Symbol #"a",
-                                               Altern(Symbol #"c", Symbol #"b"))),
+         R.Case ("matchset", {actual = d "[abc]",
+                              expect = Altern(Symbol #"a", Altern(Symbol #"c", Symbol #"b"))}),
 
-         R.Case ("plus", d "a+", Altern(Symbol #"a", Repeat(Symbol #"a"))),
-         R.Case ("option", d "a?", Altern(Symbol #"a", Epsilon)),
+         R.Case ("plus", {actual = d "a+",
+                          expect = Altern(Symbol #"a", Repeat(Symbol #"a"))}),
 
-         R.Case ("groups1", d "(a|b)*", Repeat(Altern(Symbol #"a", Symbol #"b"))),
-         R.Case ("groups2", d "(ab)?", Altern(Concat(Symbol #"a", Symbol #"b"),
-                                              Epsilon)),
-         R.Case ("groups3", d "(ab)*", Repeat(Concat(Symbol #"a", Symbol #"b")))])
+         R.Case ("option", {actual = d "a?",
+                            expect = Altern(Symbol #"a", Epsilon)}),
+
+         R.Case ("groups1", {actual = d "(a|b)*",
+                             expect = Repeat(Altern(Symbol #"a", Symbol #"b"))}),
+
+         R.Case ("groups2", {actual = d "(ab)?",
+                             expect = Altern(Concat(Symbol #"a", Symbol #"b"),Epsilon)}),
+
+         R.Case ("groups3", {actual=d "(ab)*", expect=Repeat(Concat(Symbol #"a", Symbol #"b"))})])
 
 fun doTestRun v = R.runTests v tests
 

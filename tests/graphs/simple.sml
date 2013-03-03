@@ -8,9 +8,9 @@ functor DirectedWeightedGraphTesterFn(G: DIRECTED_WEIGHTED_GRAPH) =
              val g1 = G.addEdges(G.empty, [(1,2,"foo"), (2,3,"bar")])
           in
              I.runTests v (I.TGroup ("graph test functor",
-                                     [I.Case ("move", G.move (g, 1, "foo"), SOME 2),
-                                      I.Case ("move1", G.move (g, 3, "baz"), NONE),
-                                      I.Case ("move2", G.move (g1, 2, "bar"), SOME 3)]))
+                                     [I.Case ("move", {actual=G.move (g, 1, "foo"), expect=SOME 2}),
+                                      I.Case ("move1", {actual=G.move (g, 3, "baz"), expect=NONE}),
+                                      I.Case ("move2", {actual=G.move (g1, 2, "bar"), expect=SOME 3})]))
           end
    end
 

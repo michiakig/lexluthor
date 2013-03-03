@@ -49,10 +49,10 @@ structure I = IntOptionTester
 
 val tests =
     I.TGroup ("simple graphs",
-            [I.Case ("tree1", depthFirstSearch (tree, 1, 7), SOME 7),
-             I.Case ("tree2", depthFirstSearch (tree, 1, 9), NONE),
-             I.Case ("tree3", breadthFirstSearch (tree, 1, 9), NONE),
-             I.Case ("tree4", breadthFirstSearch (tree, 1, 7), SOME 7)])
+            [I.Case ("tree1", {actual=depthFirstSearch (tree, 1, 7), expect=SOME 7}),
+             I.Case ("tree2", {actual=depthFirstSearch (tree, 1, 9), expect=NONE}),
+             I.Case ("tree3", {actual=breadthFirstSearch (tree, 1, 9), expect=NONE}),
+             I.Case ("tree4", {actual=breadthFirstSearch (tree, 1, 7), expect=SOME 7})])
 
 fun doTestRun v = I.runTests v tests
 

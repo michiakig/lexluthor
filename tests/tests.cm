@@ -12,7 +12,9 @@ is
     match.sml
     regexp.sml
     simplelexer.sml
-    graphs.sml
+    graphs/testers.sml
+    graphs/simple.sml
+    graphs/search.sml
     framework.sml
     ../lexluthor.cm
     ../lib/typeclasses.cm

@@ -45,10 +45,13 @@ end
 val lexerTests =
    S.TGroup
        ("simple lexer",
-        [S.Case ("single num", lex "1010", [(SimpleLexerSpec.Num, "1010")]),
-         S.Case ("single id", lex "ab", [(SimpleLexerSpec.Id, "ab")]),
-         S.Case ("mixed", lex "100100abab", [(SimpleLexerSpec.Num, "100100"),
-                                             (SimpleLexerSpec.Id, "abab")])])
+        [S.Case ("single num", {actual=lex "1010",
+                                expect=[(SimpleLexerSpec.Num, "1010")]}),
+         S.Case ("single id", {actual=lex "ab",
+                               expect=[(SimpleLexerSpec.Id, "ab")]}),
+         S.Case ("mixed", {actual=lex "100100abab",
+                           expect=[(SimpleLexerSpec.Num, "100100"),
+                                   (SimpleLexerSpec.Id, "abab")]})])
 
 fun doTestRun v = S.runTests v lexerTests
 
