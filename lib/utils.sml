@@ -12,6 +12,14 @@ structure ExtList =
             recur l []
          end
 
+      fun replicate n x =
+          let
+             fun replicate' acc 0 = rev acc
+               | replicate' acc n = replicate' (x::acc) (n-1)
+          in
+             replicate' [] n
+          end
+
       (* returns true if all elements are equal (equality types only) *)
       fun allEq [] = true
         | allEq l = List.all (fn x => x = hd l) l
