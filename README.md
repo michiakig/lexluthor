@@ -33,9 +33,8 @@ compilers.
 
 ## tests
 
-To run the tests under SML/NJ, execute the script `runTests.sh` from
-`tests/`. Alternatively, compile with MLton and run with: `mlton
-lexluthor.mlb ; ./lexluthor`.
+To build and test execute `scripts/runTests.sh $compiler` where
+`$compiler` is either `smlnj` or `mlton`.
 
 [0]: http://www.cs.princeton.edu/~appel/modern/ml/ "Modern Compiler Implementation in ML"
 [1]: http://www.smlnj.org/dist/working/110.75/index.html "latest SML/NJ"
