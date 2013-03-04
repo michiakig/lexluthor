@@ -118,13 +118,32 @@ signature EQ =
       val eq : t * t -> bool
    end
 
-structure Int =
+structure IntShow: SHOW =
    struct
-      open Int
       type t = int
-      val show = toString
+      val show = Int.toString
+   end
+
+structure IntEq: EQ =
+   struct
+      type t = int
       fun eq (x,y) =
           case Int.compare (x,y) of
+              EQUAL => true
+            | _ => false
+   end
+
+structure StringShow: SHOW =
+   struct
+      type t = string
+      fun show x = "\"" ^ x ^ "\""
+   end
+
+structure StringEq: EQ =
+   struct
+      type t = string
+      fun eq (x,y) =
+          case String.compare (x,y) of
               EQUAL => true
             | _ => false
    end
@@ -163,14 +182,14 @@ functor SqShowFn(structure Show: SHOW) =
       end
    end
 
-functor OptionShowFn(Show: SHOW): SHOW =
+functor OptionShowFn(structure Show: SHOW): SHOW =
    struct
       type t = Show.t option
       fun show NONE = "NONE"
         | show (SOME x) = "SOME " ^ Show.show x
    end
 
-functor OptionEqFn(Eq: EQ): EQ =
+functor OptionEqFn(structure Eq: EQ): EQ =
    struct
       type t = Eq.t option
       fun eq (NONE,NONE) = true
@@ -179,13 +198,13 @@ functor OptionEqFn(Eq: EQ): EQ =
         | eq (SOME x,SOME y) = Eq.eq (x,y)
    end
 
-functor ListShowFn(Show: SHOW): SHOW =
+functor ListShowFn(structure Show: SHOW): SHOW =
    struct
       type t = Show.t list
       fun show xs = "[" ^ concat (ExtList.interleave (map Show.show xs) ",") ^ "]"
    end
 
-functor ListEqFn(Eq: EQ): EQ =
+functor ListEqFn(structure Eq: EQ): EQ =
    struct
       type t = Eq.t list
       val eq = ListPair.allEq Eq.eq

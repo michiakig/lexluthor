@@ -12,16 +12,13 @@ structure EmptyLexerSpec =
 
 structure LexLuthor = LexLuthorFn(EmptyLexerSpec: LEXER_SPEC)
 
-structure MatchShowEq =
-   struct
-      type t = (string * string) option
-      val eq = (op =)
-      fun show NONE = "NONE"
-        | show (SOME (x, y)) = "SOME (\"" ^ x ^ "\",\"" ^ y ^ "\")"
-   end
-structure M = TestFn (structure Show = MatchShowEq
-                      structure Eq = MatchShowEq)
+structure MatchShow = OptionShowFn(structure Show=SqShowFn(structure Show=StringShow))
+structure MatchEq = OptionEqFn(structure Eq=SqEqFn(structure Eq=StringEq))
+structure M = TestFn (structure Show = MatchShow
+                      structure Eq = MatchEq)
+open M
 val match = LexLuthor.match
+
 val regexTests =
    let
       val a = Symbol #"a"
