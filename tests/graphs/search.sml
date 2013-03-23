@@ -45,15 +45,13 @@ in
       end
 end
 
-structure I = IntOptionTester
-
 val tests =
-    I.TGroup ("simple graphs",
-            [I.Case ("tree1", {actual=depthFirstSearch (tree, 1, 7), expect=SOME 7}),
-             I.Case ("tree2", {actual=depthFirstSearch (tree, 1, 9), expect=NONE}),
-             I.Case ("tree3", {actual=breadthFirstSearch (tree, 1, 9), expect=NONE}),
-             I.Case ("tree4", {actual=breadthFirstSearch (tree, 1, 7), expect=SOME 7})])
+    ("simple graphs",
+     [{actual=depthFirstSearch (tree, 1, 7), expected=SOME 7},
+      {actual=depthFirstSearch (tree, 1, 9), expected=NONE},
+      {actual=breadthFirstSearch (tree, 1, 9), expected=NONE},
+      {actual=breadthFirstSearch (tree, 1, 7), expected=SOME 7}])
 
-fun doTestRun v = I.runTests v tests
+fun doTestRun v = Test.runTestSuite (Test.polyAssertEq {show=Show.option Show.int}) v tests
 
 end

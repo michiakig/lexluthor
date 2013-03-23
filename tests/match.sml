@@ -1,5 +1,5 @@
 (* tests for regular expression matching function only *)
-structure MatchTests: TESTS =
+structure MatchTests =
 struct
 
 open BasicRegExpSyntax
@@ -11,12 +11,6 @@ structure EmptyLexerSpec =
    end
 
 structure LexLuthor = LexLuthorFn(EmptyLexerSpec: LEXER_SPEC)
-
-structure MatchShow = OptionShowFn(structure Show=SqShowFn(structure Show=StringShow))
-structure MatchEq = OptionEqFn(structure Eq=SqEqFn(structure Eq=StringEq))
-structure M = TestFn (structure Show = MatchShow
-                      structure Eq = MatchEq)
-open M
 val match = LexLuthor.match
 
 val regexTests =
@@ -24,24 +18,16 @@ val regexTests =
       val a = Symbol #"a"
       val b = Symbol #"b"
    in
-      M.TGroup
-          ("regexps",
-           [M.Case ("symbol", {actual=match(a, "a"), expect=SOME ("a","")}),
-
-            M.Case ("epsilon",
-                    {actual=match(Epsilon, "a"), expect=SOME ("","a")}),
-
-            M.Case ("concat", {actual=match(Concat(a, b), "abc"),
-                               expect=SOME ("ab","c")}),
-
-            M.Case ("altern", {actual=match(Altern(a, b), "ab"),
-                               expect=SOME ("a", "b")}),
-
-            M.Case ("repeat", {actual=match(Repeat(a), "aaaab"),
-                               expect=SOME ("aaaa", "b")})
-          ])
+      ("regexps",
+       [{actual = match (a, "a"),              expected = SOME ("a", "")},
+        {actual = match (Epsilon, "a"),        expected = SOME ("", "a")},
+        {actual = match (Concat(a, b), "abc"), expected = SOME ("ab", "c")},
+        {actual = match (Altern(a, b), "ab"),  expected = SOME ("a", "b")},
+        {actual = match (Repeat a, "aaaab"),   expected = SOME ("aaaa", "b")}])
    end
 
-fun doTestRun v = M.runTests v regexTests
+val assert = Test.polyAssertEq {show=Show.option (Show.sq Show.string)}
+
+fun doTestRun v = Test.runTestSuite assert v regexTests
 
 end

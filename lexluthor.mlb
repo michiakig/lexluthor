@@ -5,7 +5,6 @@ lib/lib.sml
 lib/graphs.sml
 lexluthor.sml
 tests/framework.sml
-tests/graphs/testers.sml
 tests/graphs/search.sml
 tests/graphs/simple.sml
 tests/graphs/mlton.sml

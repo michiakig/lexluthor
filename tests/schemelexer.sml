@@ -1,11 +1,10 @@
-structure SchemeLexerTests(* : TESTS *) =
+structure SchemeLexerTests =
 struct
 
 open BasicRegExpSyntax
 
 structure SchemeLexerSpec =
    struct
-
       datatype token = LPAREN | RPAREN | IDENT | WSPACE
       local
          val regexes = [("\\(",LPAREN),

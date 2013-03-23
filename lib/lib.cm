@@ -2,22 +2,15 @@ Library
     structure ExtList
     structure Pair
     structure HigherOrder
-    structure IntShow
-    structure IntEq
-    structure StringShow
-    structure StringEq
+    structure Eq
+    structure Show
 
     functor ExtOrdMapFn
-    functor PairShowFn
-    functor PairEqFn
-    functor SqEqFn
-    functor SqShowFn
-    functor OptionShowFn
-    functor OptionEqFn
-    functor ListShowFn
-    functor ListEqFn
     functor MapShowFn
+    functor MapEqFn
+    functor SqListMapFn
     functor SetShowFn
+    functor SetEqFn
 
     signature SHOW
     signature EQ

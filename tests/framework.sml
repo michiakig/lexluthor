@@ -2,79 +2,43 @@
  * a very lightweight testing framework
  *)
 
-signature TESTS =
-   sig
-      val doTestRun: bool -> unit
-   end
-
-functor TestFn(structure Show: SHOW
-               structure Eq: EQ
-               sharing type Show.t = Eq.t) =
+structure Test =
    struct
-      open ExtList
-      open Show
-      open Eq
-      type t = Show.t
+      type 'a genidx = {eq: 'a Eq.t, show: 'a Show.t}
+      type 'a testcase = {actual: 'a, expected: 'a}
+      type ''a polyidx = {show: ''a Show.t}
 
-      datatype test =
-         Case of string * {actual: t, expect: t}
-       | TGroup of string * test list
+      datatype 'a result = Pass of 'a testcase
+                         | Fail of string * 'a testcase
 
-      datatype result =
-         Pass of test
-       | Fail of test
-       | RGroup of string * result list
+      val genAssertEq: 'a genidx -> 'a testcase -> 'a result =
+       fn {eq, show} =>
+          fn (data as {actual, expected}) =>
+             if eq (actual, expected)
+                then Pass data
+             else Fail ("expected: " ^ show expected ^
+                        ", but got: " ^ show actual, data)
 
-      fun test (c as Case (_, {actual, expect})) =
-         if eq (actual, expect)
-            then Pass c
-         else Fail c
-       | test (g as TGroup (name, tests)) =
-          RGroup (name, map test tests)
+      val polyAssertEq: ''a polyidx -> ''a testcase -> ''a result =
+       fn {show} => genAssertEq {eq=op =,show=show}
 
-      fun showResults result =
+      fun collectResults assert (tests: 'a testcase list) = map assert tests
+
+      fun showResult (Pass _) = ("pass", ".")
+        | showResult (Fail (msg, _)) = ("FAIL " ^ msg, "F")
+
+      fun runTestSuite assert v (name, tests) =
           let
-             fun show' d x = concat (replicate d " ") ^ show x
-             fun showResults' depth (Pass (Case (name, _))) =
-                 let
-                    val verbose = concat (replicate depth " ") ^ "Passed: " ^ name
-                    val concise = "."
-                 in
-                    (verbose, concise)
-                 end
-               | showResults' depth (Fail (Case (name, {actual, expect}))) =
-                 let
-                    val verbose = concat (replicate depth " ") ^
-                                  "FAILED: " ^ name ^
-                                  ", expected: " ^ (show expect) ^
-                                  ", but actually got: " ^ (show actual)
-                    val concise = "F"
-                 in
-                    (verbose, concise)
-                 end
-               | showResults' depth (RGroup (name, results)) =
-                 let
-                    val results = map (showResults' (depth+1)) results
-                    val verbose = map Pair.first results
-                    val concise = map Pair.second results
-                 in
-                    (concat (replicate depth " ") ^
-                     concat (interleave (name :: verbose) "\n"),
-                     name ^ ": " ^ concat concise)
-                 end
+             val (verbose, concise) =
+                 ListPair.unzip (map showResult
+                                     (collectResults assert tests))
           in
-             showResults' 0 result
+             (print ("[" ^ name ^ "] ")
+             ; if v
+               then print ("\n" ^ (concat (ExtList.interleave verbose "\n")))
+               else print (concat concise)
+             ; print "\n")
           end
-
-      fun runTests verbose tests =
-         let
-            val (v, c) = (showResults (test tests))
-         in
-            (if verbose
-                then print v
-             else print c
-            ; print "\n")
-         end
    end
 
 (* example use *)

@@ -104,6 +104,50 @@ structure HigherOrder =
 
       end
 
+structure Eq =
+   struct
+      type 'a t = 'a * 'a -> bool
+      val unit: unit t = op =
+      val int: int t = op =
+      val word: word t = op =
+      val char: char t = op =
+      val real: real t = Real.==
+      val string: string t = op =
+      val bool: bool t = op =
+      val list: 'a t -> 'a list t = fn eq => ListPair.allEq eq
+      val option: 'a t -> 'a option t =
+       fn eq =>
+          fn (NONE, SOME _) => false
+           | (SOME _, NONE) => false
+           | (SOME x, SOME y) => eq (x, y)
+           | _ => true
+      val pair: 'a t * 'b t -> ('a * 'b) t =
+       fn (eqa,eqb) => fn ((a,b),(a',b')) => eqa (a,a') andalso eqb (b,b')
+      val sq: 'a t -> ('a * 'a) t =
+       fn eq => fn ((a,a'),(a'',a''')) => eq (a,a'') andalso eq (a',a''')
+   end
+
+structure Show =
+   struct
+      type 'a t = 'a -> string
+      val unit: unit t = fn _ => "()"
+      val int: int t = Int.toString
+      val word: word t = Word.toString
+      val char: char t = Char.toString
+      val real: real t = Real.toString
+      val string: string t = fn s => "\"" ^ s ^ "\""
+      val bool: bool t = Bool.toString
+      val list: 'a t -> 'a list t =
+       fn show => fn xs => "[" ^ concat (ExtList.interleave (map show xs) ",") ^ "]"
+      val option: 'a t -> 'a option t =
+       fn show => fn NONE => "NONE" | (SOME x) => "SOME " ^ show x
+
+      val pair: 'a t * 'b t -> ('a * 'b) t =
+       fn (showa,showb) => fn (a,b) => "(" ^ showa a ^ "," ^ showb b ^ ")"
+      val sq: 'a t -> ('a * 'a) t =
+       fn (show) => fn (a,a') => "(" ^ show a ^ "," ^ show a' ^ ")"
+   end
+
 (* typeclass-style signatures, related boilerplate *)
 
 signature SHOW =
@@ -116,98 +160,6 @@ signature EQ =
    sig
       type t
       val eq : t * t -> bool
-   end
-
-structure IntShow: SHOW =
-   struct
-      type t = int
-      val show = Int.toString
-   end
-
-structure IntEq: EQ =
-   struct
-      type t = int
-      fun eq (x,y) =
-          case Int.compare (x,y) of
-              EQUAL => true
-            | _ => false
-   end
-
-structure StringShow: SHOW =
-   struct
-      type t = string
-      fun show x = "\"" ^ x ^ "\""
-   end
-
-structure StringEq: EQ =
-   struct
-      type t = string
-      fun eq (x,y) =
-          case String.compare (x,y) of
-              EQUAL => true
-            | _ => false
-   end
-
-functor PairShowFn(structure A: SHOW
-                   structure B: SHOW): SHOW =
-   struct
-      type t = A.t * B.t
-      fun show (a,b) = "(" ^ A.show a ^ "," ^ B.show b ^ ")"
-   end
-
-functor PairEqFn(structure A: EQ
-                 structure B: EQ): EQ =
-   struct
-      type t = A.t * B.t
-      fun eq ((a,b),(a',b')) = A.eq (a,a') andalso B.eq (b,b')
-   end
-
-functor SqEqFn(structure Eq: EQ) =
-   struct
-      local
-         structure S = PairEqFn(structure A=Eq
-                                structure B=Eq)
-      in
-         open S
-      end
-   end
-
-functor SqShowFn(structure Show: SHOW) =
-   struct
-      local
-         structure S = PairShowFn(structure A=Show
-                                  structure B=Show)
-      in
-         open S
-      end
-   end
-
-functor OptionShowFn(structure Show: SHOW): SHOW =
-   struct
-      type t = Show.t option
-      fun show NONE = "NONE"
-        | show (SOME x) = "SOME " ^ Show.show x
-   end
-
-functor OptionEqFn(structure Eq: EQ): EQ =
-   struct
-      type t = Eq.t option
-      fun eq (NONE,NONE) = true
-        | eq (NONE,SOME _) = false
-        | eq (SOME _,NONE) = false
-        | eq (SOME x,SOME y) = Eq.eq (x,y)
-   end
-
-functor ListShowFn(structure Show: SHOW): SHOW =
-   struct
-      type t = Show.t list
-      fun show xs = "[" ^ concat (ExtList.interleave (map Show.show xs) ",") ^ "]"
-   end
-
-functor ListEqFn(structure Eq: EQ): EQ =
-   struct
-      type t = Eq.t list
-      val eq = ListPair.allEq Eq.eq
    end
 
 functor MapShowFn(structure Map: ORD_MAP
@@ -226,6 +178,47 @@ functor MapShowFn(structure Map: ORD_MAP
           end
    end
 
+functor MapEqFn(structure Map: ORD_MAP
+                structure V: EQ): EQ =
+   struct
+      type t = V.t Map.map
+      local
+         structure ExtOrdMap = ExtOrdMapFn(Map)
+      in
+         fun eq (m,m') =
+             if Map.numItems m <> Map.numItems m'
+                then false
+             else
+                let
+                   val keys = Map.listItemsi m
+                   fun p (k,v) = case Map.find (m', k) of
+                                     NONE => false
+                                   | SOME v' => V.eq (v,v')
+                in
+                   List.all p keys
+                end
+      end
+   end
+
+(* returns a structure conforming to ORD_MAP for keys of type (a * b) *)
+functor SqListMapFn(structure A: ORD_KEY
+                    structure B: ORD_KEY): ORD_MAP =
+   struct
+      local
+         structure SqOrdKey: ORD_KEY = struct
+            type ord_key = A.ord_key * B.ord_key
+            fun compare ((a,b), (a',b')) =
+                case A.compare (a, a') of
+                    LESS => LESS
+                  | GREATER => GREATER
+                  | EQUAL => B.compare (b, b')
+         end
+         structure Map = ListMapFn(SqOrdKey)
+      in
+         open Map
+      end
+   end
+
 functor SetShowFn(structure Set: ORD_SET
                   structure Show: SHOW
                   sharing type Set.Key.ord_key = Show.t): SHOW =
@@ -238,4 +231,15 @@ functor SetShowFn(structure Set: ORD_SET
           in
              "{" ^ String.concat (ExtList.interleave strs ",") ^ "}"
           end
+   end
+
+functor SetEqFn(structure Set: ORD_SET
+                structure Eq: EQ
+                sharing type Set.Key.ord_key = Eq.t): EQ =
+   struct
+      type t = Set.set
+      fun eq (x,y) =
+          case Set.compare (x,y) of
+              EQUAL => true
+            | _ => false
    end

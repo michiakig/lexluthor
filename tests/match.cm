@@ -1,0 +1,8 @@
+Library
+    structure MatchTests
+is
+    match.sml
+    ../lib/lib.cm
+    framework.cm
+    ../lexluthor.cm
+    $/basis.cm

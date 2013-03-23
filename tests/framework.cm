@@ -1,6 +1,5 @@
 Library
-    signature TESTS
-    functor TestFn
+    structure Test
 is
     framework.sml
     ../lib/lib.cm
