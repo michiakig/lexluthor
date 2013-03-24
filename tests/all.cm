@@ -5,11 +5,10 @@ Library
     structure SimpleLexerTests
     structure Main
 is
-    main.sml
+    all.sml
     match.sml
     regexp.sml
     simplelexer.sml
-    graphs/testers.sml
     graphs/simple.sml
     graphs/search.sml
     framework.sml

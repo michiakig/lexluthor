@@ -4,5 +4,7 @@ structure Main =
       fun main _ = (MatchTests.doTestRun false
                     ; RegExpTests.doTestRun false
                     ; SimpleLexerTests.doTestRun false
+                    ; ListGraphTests.doTestRun false
+                    ; GraphSearchTests.doTestRun false
                     ; OS.Process.success)
    end

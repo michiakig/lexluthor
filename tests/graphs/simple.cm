@@ -1,0 +1,8 @@
+Library
+    structure Main
+is
+    simple.sml
+    ../framework.sml
+    ../../lib/lib.cm
+    ../../lib/graphs.cm
+    $/basis.cm

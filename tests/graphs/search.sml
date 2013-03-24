@@ -1,4 +1,4 @@
-structure SimpleGraphTests =
+structure GraphSearchTests =
 struct
 
 structure G = DirectedGraphFn(ListGraph)
@@ -46,7 +46,7 @@ in
 end
 
 val tests =
-    ("simple graphs",
+    ("graph search",
      [{actual=depthFirstSearch (tree, 1, 7), expected=SOME 7},
       {actual=depthFirstSearch (tree, 1, 9), expected=NONE},
       {actual=breadthFirstSearch (tree, 1, 9), expected=NONE},
