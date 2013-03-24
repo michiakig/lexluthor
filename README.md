@@ -19,8 +19,11 @@ for real world use.
 
 The core functionality of the lexer is complete, albeit pretty
 rough. Some of the code (the NFA to DFA conversion code especially) is
-kind of bad, and needs to be re-written with the goal of clarity and
-pedagogy in mind.
+kind of bad, and I'd like to re-write it to make it more
+readable. It's also unbearably slow for anything interesting, due to
+the naive list-based implementation of NFAs (NFA to DFA conversion for
+a classic identifier regex like `[a-z][a-z0-9]*` takes ~23s with
+SML/NJ, ~6s with MLton)
 
 ## Standard ML
 
@@ -33,8 +36,9 @@ compilers.
 
 ## tests
 
-To build and test execute `scripts/runTests.sh $compiler` where
-`$compiler` is either `smlnj` or `mlton`.
+To build and test execute `scripts/runTests.sh $compiler $test` where
+`$compiler` is either `smlnj` or `mlton`, and `$test` is a path to a
+`.cm` or `.mlb` file (such as `tests/all.cm`).
 
 [0]: http://www.cs.princeton.edu/~appel/modern/ml/ "Modern Compiler Implementation in ML"
 [1]: http://www.smlnj.org/dist/working/110.75/index.html "latest SML/NJ"

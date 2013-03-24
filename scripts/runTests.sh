@@ -1,30 +1,33 @@
 #! /bin/bash
 
 function smlnj {
-    pushd tests
-    ml-build all.cm Main.main tests
+    fullname=$1
+    filename=$(basename "$fullname")
+    dirname=$(dirname "$fullname")
+    shortname="${filename%.*}"
+    ml-build $fullname Main.main $shortname
     if [ $? -eq 0 ]; then
         echo "*** build successful, running tests ***"
-        sml @SMLload=tests.x86-darwin
-        rm tests.x86-darwin
+        time sml @SMLload=$shortname.x86-darwin
+        rm $shortname.x86-darwin
     fi
-    popd
 }
 
 function mlton_build {
-    mlton tests/all.mlb
+    fullname=$1
+    filename=$(basename "$fullname")
+    dirname=$(dirname "$fullname")
+    shortname="${filename%.*}"
+    mlton $fullname
     if [ $? -eq 0 ]; then
         echo "*** build successful, running tests ***"
-        ./tests/all
-        rm tests/all
+        time ./$dirname/$shortname
+        rm ./$dirname/$shortname
     fi
 }
 
 if [[ $# -gt 1 && $1 = smlnj ]]; then
-    smlnj
+    smlnj $2
 elif [[ $# -gt 1 && $1 = mlton ]]; then
-    mlton_build
-else
-    smlnj
-    mlton_build
+    mlton_build $2
 fi

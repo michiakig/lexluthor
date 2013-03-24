@@ -39,3 +39,8 @@ fun doTestRun v =
        (List.app p strings; print "\n")
     end                                               
 end
+
+structure Main =
+struct
+   fun main _ = (SchemeLexerTests.doTestRun false; OS.Process.success)
+end

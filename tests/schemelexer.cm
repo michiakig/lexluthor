@@ -1,0 +1,9 @@
+Library
+    structure Main
+is
+    framework.sml
+    schemelexer.sml
+    ../lexluthor.cm
+    ../lib/lib.cm
+    ../lib/graphs.cm
+    $/basis.cm
