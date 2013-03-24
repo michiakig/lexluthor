@@ -28,19 +28,19 @@ in
    fun lex s = SimpleLexLuthor.lex (lexer, s)
 end
 
-val lexerTests =
-    ("simple lexer",
-     [{actual=lex "1010",       expected=[(SimpleLexerSpec.Num, "1010")]},
-      {actual=lex "ab",         expected=[(SimpleLexerSpec.Id, "ab")]},
-      {actual=lex "100100abab", expected=[(SimpleLexerSpec.Num, "100100"),
-                                        (SimpleLexerSpec.Id, "abab")]}])
-
 local
    open Show
+   open Test
 in
    val assert = Test.polyAssertEq {show=(list (pair (showToken, string)))}
+   val lexerTests =
+       group ("simple lexer", assert,
+              [{actual=lex "1010",       expected=[(SimpleLexerSpec.Num, "1010")]},
+               {actual=lex "ab",         expected=[(SimpleLexerSpec.Id, "ab")]},
+               {actual=lex "100100abab", expected=[(SimpleLexerSpec.Num, "100100"),
+                                                   (SimpleLexerSpec.Id, "abab")]}])
 end
 
-fun doTestRun v = Test.runTestSuite assert v lexerTests
+fun doTestRun v = Test.runTestSuite (v, lexerTests)
 
 end

@@ -1,8 +1,4 @@
 Library
-    structure Test
-    structure MatchTests
-    structure RegExpTests
-    structure SimpleLexerTests
     structure Main
 is
     all.sml

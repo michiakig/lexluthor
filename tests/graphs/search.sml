@@ -46,12 +46,12 @@ in
 end
 
 val tests =
-    ("graph search",
-     [{actual=depthFirstSearch (tree, 1, 7), expected=SOME 7},
-      {actual=depthFirstSearch (tree, 1, 9), expected=NONE},
-      {actual=breadthFirstSearch (tree, 1, 9), expected=NONE},
-      {actual=breadthFirstSearch (tree, 1, 7), expected=SOME 7}])
+    Test.group ("graph search", (Test.polyAssertEq {show=Show.option Show.int}),
+                [{actual=depthFirstSearch (tree, 1, 7), expected=SOME 7},
+                 {actual=depthFirstSearch (tree, 1, 9), expected=NONE},
+                 {actual=breadthFirstSearch (tree, 1, 9), expected=NONE},
+                 {actual=breadthFirstSearch (tree, 1, 7), expected=SOME 7}])
 
-fun doTestRun v = Test.runTestSuite (Test.polyAssertEq {show=Show.option Show.int}) v tests
+fun doTestRun v = Test.runTestSuite (v, tests)
 
 end

@@ -17,20 +17,19 @@ fun show Epsilon = "Epsilon"
 val d = unsafeDesugar
 
 val tests =
-    ("desugar",
-     [{actual = d "a",      expected = Symbol #"a"},
-      {actual = d "a*",     expected = Repeat(Symbol #"a")},
-      {actual = d "a|b",    expected = Altern(Symbol #"a", Symbol #"b")},
-      {actual = d "ab",     expected = Concat(Symbol #"a", Symbol #"b")},
-      {actual = d "[abc]",  expected = Altern(Symbol #"a", Altern(Symbol #"c", Symbol #"b"))},
-      {actual = d "a+",     expected = Altern(Symbol #"a", Repeat(Symbol #"a"))},
-      {actual = d "a?",     expected = Altern(Symbol #"a", Epsilon)},
-      {actual = d "(a|b)*", expected = Repeat(Altern(Symbol #"a", Symbol #"b"))},
-      {actual = d "(ab)?",  expected = Altern(Concat(Symbol #"a", Symbol #"b"),Epsilon)},
-      {actual = d "(ab)*",  expected = Repeat(Concat(Symbol #"a", Symbol #"b"))}])
+    Test.group
+       ("desugar", Test.genAssertEq {eq = eq, show = show},
+        [{actual = d "a",      expected = Symbol #"a"},
+         {actual = d "a*",     expected = Repeat(Symbol #"a")},
+         {actual = d "a|b",    expected = Altern(Symbol #"a", Symbol #"b")},
+         {actual = d "ab",     expected = Concat(Symbol #"a", Symbol #"b")},
+         {actual = d "[abc]",  expected = Altern(Symbol #"a", Altern(Symbol #"c", Symbol #"b"))},
+         {actual = d "a+",     expected = Altern(Symbol #"a", Repeat(Symbol #"a"))},
+         {actual = d "a?",     expected = Altern(Symbol #"a", Epsilon)},
+         {actual = d "(a|b)*", expected = Repeat(Altern(Symbol #"a", Symbol #"b"))},
+         {actual = d "(ab)?",  expected = Altern(Concat(Symbol #"a", Symbol #"b"),Epsilon)},
+         {actual = d "(ab)*",  expected = Repeat(Concat(Symbol #"a", Symbol #"b"))}])
 
-val assert = Test.genAssertEq {eq = eq, show = show}
-
-fun doTestRun v = Test.runTestSuite assert v tests
+fun doTestRun v = Test.runTestSuite (v, tests)
 
 end
