@@ -70,13 +70,13 @@ structure ListGraph :> DIRECTED_WEIGHTED_GRAPH =
 
       fun move (Graph edges, n, l) =
          let
-            fun loop [] = NONE
-              | loop (Edge {start, stop, label} :: es) =
+            fun move' [] = NONE
+              | move' (Edge {start, stop, label} :: es) =
                  if start = n andalso label = l
                     then SOME stop
-                 else loop es
+                 else move' es
          in
-            loop edges
+            move' edges
          end
 
       fun allNeighbors (Graph edges, n) =
