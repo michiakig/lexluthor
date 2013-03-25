@@ -11,6 +11,7 @@ signature DIRECTED_WEIGHTED_GRAPH =
       val allNeighbors: (''n, ''l) t * ''n -> (''l * ''n) list
       val neighbors: (''n, ''l) t * ''n * ''l -> ''n list
       val adjacent: (''n, ''l) t * ''n * ''n -> bool
+      val merge: (''n, ''l) t * (''n, ''l) t -> (''n, ''l) t
    end
 
 signature DIRECTED_GRAPH =
@@ -21,6 +22,7 @@ signature DIRECTED_GRAPH =
       val addEdges: ''n t * (''n * ''n) list -> ''n t
       val neighbors: ''n t * ''n -> ''n list
       val adjacent: ''n t * ''n * ''n -> bool
+      val merge: ''n t * ''n t -> ''n t
    end
 
 functor DirectedGraphFn(G: DIRECTED_WEIGHTED_GRAPH): DIRECTED_GRAPH =
@@ -42,6 +44,7 @@ functor DirectedGraphFn(G: DIRECTED_WEIGHTED_GRAPH): DIRECTED_GRAPH =
 
       fun adjacent (g, n1, n2) = G.adjacent (g, n1, n2)
 
+      fun merge (g, g') = G.merge (g, g')
    end
 
 structure ListGraph :> DIRECTED_WEIGHTED_GRAPH =
@@ -108,4 +111,5 @@ structure ListGraph :> DIRECTED_WEIGHTED_GRAPH =
             List.exists f edges
          end
 
+      fun merge (Graph edges, Graph edges') = Graph (edges @ edges')
    end
