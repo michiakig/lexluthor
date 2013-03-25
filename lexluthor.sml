@@ -127,7 +127,7 @@ datatype 'a NFA = NFA of {startState : state,
 local
    val id = ref 0
 in
-   fun nextId() =
+   fun nextId () =
       let
          val id' = !id
       in
@@ -138,8 +138,8 @@ end
 
 fun epsilon tok =
    let
-      val start = nextId()
-      val stop = nextId();
+      val start = nextId ()
+      val stop = nextId ();
    in
       NFA {startState = start,
            stopStates = IntListMap.singleton (stop, tok),
@@ -150,8 +150,8 @@ fun epsilon tok =
 
 fun sym (tok, ch) =
    let
-      val start = nextId()
-      val stop = nextId()
+      val start = nextId ()
+      val stop = nextId ()
    in
       NFA {startState = start,
            stopStates = IntListMap.singleton (stop, tok),
@@ -186,7 +186,7 @@ fun altern (tok,
                  stopStates = stopStatesB,
                  edges = edgesB}) =
     let
-       val start = nextId()
+       val start = nextId ()
     in
        NFA {startState = start,
             stopStates = IntListMap.unionWith Pair.first (stopStatesA, stopStatesB),
@@ -312,10 +312,10 @@ in
                              stopStates=nfaStopStates}) =
        let
           val dfaStartState = closure(nfa, S.singleton nfaStartState)
-          val dfaStatesMap = ref (M.insert(M.empty, dfaStartState, nextId()))
+          val dfaStatesMap = ref (M.insert(M.empty, dfaStartState, nextId ()))
           fun getDfaState d = let val s = M.find(!dfaStatesMap, d)
                               in case s of
-                                    NONE => let val newId = nextId()
+                                    NONE => let val newId = nextId ()
                                             in (dfaStatesMap := M.insert(!dfaStatesMap, d, newId); newId)
                                             end
                                   | SOME i => i
