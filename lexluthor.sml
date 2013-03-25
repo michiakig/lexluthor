@@ -239,12 +239,8 @@ fun dfaEdge (nfa, states, input) =
 (* DFAs as distinct type from NFAs, note that DFAInput does not incude epsilon *)
 datatype DFAinput = DFAinput of char
 
-datatype DFAedge = DFAedge of {beginState : state,
-                                  endState   : state,
-                                  label      : DFAinput}
-
 datatype DFA = DFA of {startState : state,
-                       edges      : DFAedge list,
+                       edges      : (state, DFAinput) ListGraph.t,
                        stopStates : LexerSpec.token option IntListMap.map}
 
 (* return list of ints from low to high, inclusive *)
@@ -298,7 +294,7 @@ in
                                             end
                                   | SOME i => i
                               end
-          val dfaEdges = ref []
+          val dfaEdges = ref G.empty
           val dfaStates = ref (T.singleton dfaStartState) (* set of sets NFA states, ie set of DFA states *)
           val unvisited = ref [dfaStartState]
 
@@ -332,9 +328,7 @@ in
                                         val t = dfaEdge(nfa, u, NFAinput a)
                                      in
                                         if not (S.isEmpty t)
-                                           then (dfaEdges := DFAedge {beginState = getDfaState u,
-                                                                      endState = getDfaState t,
-                                                                      label = DFAinput a} :: (!dfaEdges);
+                                           then (dfaEdges := G.addEdge (!dfaEdges, getDfaState u, getDfaState t, DFAinput a);
                                                  if not (T.member(!dfaStates, t))
                                                     then (dfaStates := T.add (!dfaStates, t);
                                                           push(unvisited, t))
@@ -352,15 +346,7 @@ end
 fun inputToString (NFAinput ch) = Char.toString ch
   | inputToString Epsilon = "eps"
 
-fun dfaTransition (DFA {edges,...}, state, input) =
-   let
-      fun compare (DFAedge {beginState,label,...}) =
-         state = beginState andalso input = label
-   in
-      case (List.find compare edges) of
-         NONE => NONE
-       | SOME (DFAedge {endState,...}) => SOME endState
-   end
+fun dfaTransition (DFA {edges,...}, state, input) = G.move (edges, state, input)
 
 fun match' (dfa as DFA {startState, edges, stopStates}, input) =
    let
