@@ -5,6 +5,7 @@ Library
 is
     lexluthor.sml
     lib/lib.cm
+    lib/graphs.cm
     $/basis.cm
     $/smlnj-lib.cm
     $/regexp-lib.cm

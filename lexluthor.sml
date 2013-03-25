@@ -111,16 +111,14 @@ type state = int
    shorthand for a record which cuts down on tricky flex record
    issues, while being about as verbose *)
 
-datatype 'a NFAinput = NFAinput of 'a | Epsilon
+structure G = ListGraph
 
-datatype 'a NFAedge = NFAedge of {beginState : state,
-                                  endState   : state,
-                                  label      : 'a NFAinput}
+datatype NFAinput = NFAinput of char | Epsilon
 
 (* stop states represented as a map from state (int) to token *)
-datatype 'a NFA = NFA of {startState : state,
-                          edges      : 'a NFAedge list,
-                          stopStates : LexerSpec.token option IntListMap.map}
+datatype NFA = NFA of {startState : state,
+                       edges      : (state, NFAinput) ListGraph.t,
+                       stopStates : LexerSpec.token option IntListMap.map}
 
 (* a little mutable state to implement unique ids makes it easier to
    merge NFAs, don't need to worry about preventing state collisions *)
@@ -143,9 +141,7 @@ fun epsilon tok =
    in
       NFA {startState = start,
            stopStates = IntListMap.singleton (stop, tok),
-           edges      = [NFAedge {beginState = start,
-                                  label      = Epsilon,
-                                  endState   = stop}]}
+           edges      = G.addEdge (G.empty, start, stop, Epsilon)}
    end
 
 fun sym (tok, ch) =
@@ -155,9 +151,7 @@ fun sym (tok, ch) =
    in
       NFA {startState = start,
            stopStates = IntListMap.singleton (stop, tok),
-           edges      = [NFAedge {beginState = start,
-                                  label      = NFAinput ch,
-                                  endState   = stop}]}
+           edges      = G.addEdge (G.empty, start, stop, NFAinput ch)}
    end
 
 fun concat (tok,
@@ -168,14 +162,12 @@ fun concat (tok,
                  stopStates = stopStatesB,
                  edges = edgesB}) =
     let
-       val between = map (fn s => NFAedge {beginState = s,
-                                           endState   = startStateB,
-                                           label      = Epsilon})
+       val between = map (fn s => (s, startStateB, Epsilon))
                          (IntListMap.keys stopStatesA)
     in
        NFA {startState = startStateA,
             stopStates = stopStatesB,
-            edges      = edgesA @ edgesB @ between}
+            edges      = G.addEdges (G.merge (edgesA, edgesB), between)}
     end
 
 fun altern (tok,
@@ -190,31 +182,23 @@ fun altern (tok,
     in
        NFA {startState = start,
             stopStates = IntListMap.unionWith Pair.first (stopStatesA, stopStatesB),
-            edges      = NFAedge {beginState = start,
-                                  label      = Epsilon,
-                                  endState   = startStateA} ::
-                         NFAedge {beginState = start,
-                                  label      = Epsilon,
-                                  endState   = startStateB} ::
-                         edgesA @ edgesB}
+            edges      = G.addEdges (G.merge (edgesA, edgesB),
+                                     [(start, startStateA, Epsilon),
+                                      (start, startStateB, Epsilon)])}
     end
 
 fun repeat (tok, NFA {startState, stopStates, edges}) =
    let
       val epsEdges = foldl (fn (s, acc) =>
-                                   (NFAedge {beginState = s,
-                                             endState   = startState,
-                                             label      = Epsilon})
-                                   :: (NFAedge {beginState = startState,
-                                                endState   = s,
-                                                label      = Epsilon})
-                                   :: acc)
+                               (s, startState, Epsilon) ::
+                               (startState, s, Epsilon) ::
+                               acc)
                            []
                            (IntListMap.keys stopStates)
    in
       NFA {startState = startState,
            stopStates = stopStates,
-           edges      = epsEdges @ edges}
+           edges      = G.addEdges (edges, epsEdges)}
    end
 
 fun regexToNFA (tok, RE.Symbol ch) = sym (tok, ch)
@@ -228,14 +212,8 @@ fun regexToNFA (tok, RE.Symbol ch) = sym (tok, ch)
   | regexToNFA (tok, RE.Repeat a) = repeat(tok, regexToNFA (tok, a))
 
 (* corresponds to "edge" function defined by Appel *)
-fun edge (NFA {edges,...}, state, label1) =
-   let
-      fun pred (NFAedge {beginState, endState, label=label2}) =
-          label1 = label2 andalso beginState = state
-      fun endState (NFAedge {endState,...}) = endState
-   in
-      fromList (map endState (List.filter pred edges))
-   end
+fun edge (NFA {edges=g, ...}, state, label) =
+    fromList (G.neighbors (g, state, label))
 
 (* union of a set of sets *)
 fun union sets = T.foldl S.union S.empty sets
@@ -259,15 +237,15 @@ fun dfaEdge (nfa, states, input) =
    end
 
 (* DFAs as distinct type from NFAs, note that DFAInput does not incude epsilon *)
-datatype 'a DFAinput = DFAinput of 'a
+datatype DFAinput = DFAinput of char
 
-datatype 'a DFAedge = DFAedge of {beginState : state,
+datatype DFAedge = DFAedge of {beginState : state,
                                   endState   : state,
-                                  label      : 'a DFAinput}
+                                  label      : DFAinput}
 
-datatype 'a DFA = DFA of {startState : state,
-                          edges      : 'a DFAedge list,
-                          stopStates : LexerSpec.token option IntListMap.map}
+datatype DFA = DFA of {startState : state,
+                       edges      : DFAedge list,
+                       stopStates : LexerSpec.token option IntListMap.map}
 
 (* return list of ints from low to high, inclusive *)
 fun range (low, high) =
@@ -445,7 +423,7 @@ fun makeNfa (regex, token) =
 fun combineNFAs (nfa1, nfa2) =
    altern(NONE, nfa1, nfa2)
 
-datatype lexer = Lexer of char DFA
+datatype lexer = Lexer of DFA
 
 fun mkLexer () =
     let
