@@ -1,5 +1,5 @@
 Library
-    structure Main
+    structure ListGraphTests
 is
     simple.sml
     ../framework.sml
