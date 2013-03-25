@@ -374,26 +374,6 @@ end
 fun inputToString (NFAinput ch) = Char.toString ch
   | inputToString Epsilon = "eps"
 
-fun printNFA (NFA {startState, edges, stopStates}) =
-   (print ("start=" ^ (Int.toString startState) ^ "\n");
-    print "edges=\n";
-    List.app (fn NFAedge {beginState, label,endState} =>
-                     print (" " ^ (Int.toString beginState) ^ "-" ^ (inputToString label) ^ "-" ^ (Int.toString endState) ^ "\n"))
-             edges;
-    print "stops={ ";
-    S.app (fn s => print (Int.toString s ^ " ")) (fromList(IntListMap.keys stopStates));
-    print "}\n")
-
-fun printDFA (DFA {startState, edges, stopStates}) =
-   (print ("start=" ^ (Int.toString startState) ^ "\n");
-    print "edges=\n";
-    List.app (fn DFAedge {beginState, label=(DFAinput ch), endState} =>
-                     print (" " ^ (Int.toString beginState) ^ "-" ^ (Char.toString ch) ^ "-" ^ (Int.toString endState) ^ "\n"))
-             edges;
-    print "stops={ ";
-    S.app (fn s => print (Int.toString s ^ " ")) (fromList(IntListMap.keys stopStates));
-    print "}\n")
-
 fun dfaTransition (DFA {edges,...}, state, input) =
    let
       fun compare (DFAedge {beginState,label,...}) =
@@ -465,26 +445,6 @@ fun makeNfa (regex, token) =
 fun combineNFAs (nfa1, nfa2) =
    altern(NONE, nfa1, nfa2)
 
-fun sizeNFA (NFA {edges=edges,...}) =
-    let
-       val states = foldl (fn (NFAedge {beginState=b,endState=e,...},acc) =>
-                              S.add(S.add(acc, b), e))
-                          S.empty
-                          edges
-    in
-       (S.numItems states, length edges)
-    end
-
-fun sizeDFA (DFA {edges=edges,...}) =
-    let
-       val states = foldl (fn (DFAedge {beginState=b,endState=e,...},acc) =>
-                              S.add(S.add(acc, b), e))
-                          S.empty
-                          edges
-    in
-       (S.numItems states, length edges)
-    end
-
 datatype lexer = Lexer of char DFA
 
 fun mkLexer () =
@@ -492,13 +452,7 @@ fun mkLexer () =
        (* FIXME what if tokens is [] ? *)
        val nfas = map makeNfa LexerSpec.tokens
        val combinedNFA = foldl combineNFAs (hd nfas) (tl nfas)
-       val (statesNFA,edgesNFA) = sizeNFA combinedNFA
-       val _ = print ("NFA=" ^ Int.toString statesNFA ^ " states,"
-                      ^ Int.toString edgesNFA ^ " edges,")
        val dfa = nfaToDfa combinedNFA
-       val (statesDFA,edgesDFA) = sizeDFA dfa
-       val _ = print ("DFA=" ^ Int.toString statesDFA ^ " states,"
-                      ^ Int.toString edgesDFA ^ " edges\n")
     in
        Lexer dfa
     end
