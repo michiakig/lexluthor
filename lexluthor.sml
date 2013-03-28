@@ -57,6 +57,30 @@ structure BasicRegExpSyntax =
 
       fun unsafeDesugar s = desugar(unsafeParse s)
 
+      (* computes the size of the NFA resulting from Thompson's construction *)
+      fun size Epsilon = {states = 2, edges = 1}
+        | size (Symbol _) = {states = 2, edges = 1}
+        | size (Concat (a, b)) =
+          let
+             val {states = a, edges = a'} = size a
+             val {states = b, edges = b'} = size b
+          in
+             {states = a + b, edges = a' + b' + 1}
+          end
+        | size (Altern (a, b)) =
+          let
+             val {states = a, edges = a'} = size a
+             val {states = b, edges = b'} = size b
+          in
+             {states = a + b + 2, edges = a' + b' + 4}
+          end
+        | size (Repeat a) =
+          let
+             val {states, edges} = size a
+          in
+             {states = states, edges = edges + 2}
+          end
+
    end
 
 signature LEXER_SPEC =

@@ -17,6 +17,7 @@ fun show Epsilon = "Epsilon"
 val d = unsafeDesugar
 
 val tests =
+    Test.concat [
     Test.group
        ("desugar", Test.genAssertEq {eq = eq, show = show},
         [{actual = d "a",      expected = Symbol #"a"},
@@ -29,6 +30,16 @@ val tests =
          {actual = d "(a|b)*", expected = Repeat(Altern(Symbol #"a", Symbol #"b"))},
          {actual = d "(ab)?",  expected = Altern(Concat(Symbol #"a", Symbol #"b"),Epsilon)},
          {actual = d "(ab)*",  expected = Repeat(Concat(Symbol #"a", Symbol #"b"))}])
+    , Test.group ("re.size", Test.polyAssertEq
+                                {show = fn {states, edges} =>
+                                           "{states=" ^ Int.toString states ^
+                                           ",edges=" ^ Int.toString edges ^ "}"},
+                  [{actual = size Epsilon,                             expected = {states = 2, edges = 1}},
+                   {actual = size (Symbol #"a"),                       expected = {states = 2, edges = 1}},
+                   {actual = size (Repeat (Symbol #"a")),              expected = {states = 2, edges = 3}},
+                   {actual = size (Altern (Symbol #"a", Symbol #"b")), expected = {states = 6, edges = 6}},
+                   {actual = size (Concat (Symbol #"a", Symbol #"b")), expected = {states = 4, edges = 3}}
+    ])]
 
 fun doTestRun v = Test.runTestSuite (v, tests)
 
