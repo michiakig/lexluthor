@@ -144,6 +144,14 @@ datatype NFA = NFA of {startState : state,
                        edges      : (state, NFAinput) ListGraph.t,
                        stopStates : LexerSpec.token option IntListMap.map}
 
+local
+   val lineNum = ref 0
+in
+   fun resetLineNum () = lineNum := 1
+   fun incrLineNum () = lineNum := !lineNum + 1
+   fun currentLineNum () = !lineNum
+end
+
 (* a little mutable state to implement unique ids makes it easier to
    merge NFAs, don't need to worry about preventing state collisions *)
 local
@@ -285,7 +293,7 @@ fun charRange (low, high) =
        (range (Char.ord low, Char.ord high))
 
 (* FIXME alphabet restricted to lowercase letters and digits, but should be a param *)
-val alphas = charRange (#"a", #"z") @ charRange (#"0", #"9") @ [#" ", #"(", #")"]
+val alphas = charRange (#"a", #"z") @ charRange (#"0", #"9") @ [#" ", #"(", #")", #"\n"]
 
 (* true if the two sets share at least one element *)
 fun anyShared (s, t) =
@@ -383,8 +391,14 @@ fun match' (dfa as DFA {startState, edges, stopStates}, input) =
          let
             val SOME tok = IntListMap.find(stopStates, finalState)
          in
-            SOME (tok, List.take(input, position), List.drop(input, position))
+            SOME (tok, currentLineNum (),
+                  List.take(input, position), List.drop(input, position))
          end
+
+      fun checkNewLine ch =
+          if ch = (DFAinput #"\n")
+             then incrLineNum ()
+          else ()
 
       fun loop currentS lastFinalS pos posAtLastFinalS =
          let
@@ -405,9 +419,11 @@ fun match' (dfa as DFA {startState, edges, stopStates}, input) =
                 in
                    case nextState of
                       NONE => finish ()
-                    | SOME s => if isFinalState s
-                                   then loop s s pos' pos'
-                                else loop s lastFinalS pos' posAtLastFinalS
+                    | SOME s =>
+                      (checkNewLine ch
+                      ; if isFinalState s
+                           then loop s s pos' pos'
+                        else loop s lastFinalS pos' posAtLastFinalS)
                 end
          end
    in
@@ -424,7 +440,7 @@ fun match (re, inputString) =
    in
       case match' (dfa, map DFAinput (String.explode inputString)) of
          NONE => NONE
-       | SOME (tok, acc, rest) => SOME (collapse acc, collapse rest)
+       | SOME (tok, linenum, acc, rest) => SOME (collapse acc, collapse rest)
    end
 
 fun makeNfa (regex, token) =
@@ -450,11 +466,11 @@ fun lex (Lexer dfa, s) =
       fun loop acc inputs =
          case match' (dfa, inputs) of
             NONE => rev acc
-          | SOME (_, [], _) => rev acc
-          | SOME (tok, match, rest) =>
-                (Option.valOf tok, collapse match) :: loop acc rest
+          | SOME (_, _, [], _) => rev acc
+          | SOME (tok, linenum, match, rest) =>
+                (Option.valOf tok, collapse match, linenum) :: loop acc rest
    in
-      (loop [] (map DFAinput (String.explode s)))
+      (resetLineNum (); loop [] (map DFAinput (String.explode s)))
    end
 
 end

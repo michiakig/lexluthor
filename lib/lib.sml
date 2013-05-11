@@ -144,6 +144,12 @@ structure Show =
 
       val pair: 'a t * 'b t -> ('a * 'b) t =
        fn (showa,showb) => fn (a,b) => "(" ^ showa a ^ "," ^ showb b ^ ")"
+
+      val triple: 'a t * 'b t * 'c t -> ('a * 'b * 'c) t =
+       fn (showa,showb,showc) => fn (a,b,c) => "(" ^ showa a ^ ","
+                                               ^ showb b ^ ","
+                                               ^ showc c ^ ")"
+
       val sq: 'a t -> ('a * 'a) t =
        fn (show) => fn (a,a') => "(" ^ show a ^ "," ^ show a' ^ ")"
    end
