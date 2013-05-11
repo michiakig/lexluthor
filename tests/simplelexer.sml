@@ -9,7 +9,8 @@ structure SimpleLexerSpec =
       datatype token = Num | Id
       local
          (* binary numbers *)
-         val num = Concat(Symbol #"1",Repeat(Altern(Symbol #"0",Symbol #"1")))
+         val num = Concat(Altern(Symbol #"0",Symbol #"1"),
+                          Repeat(Altern(Symbol #"0",Symbol #"1")))
          (* identifiers consisting only of a,b,c *)
          val id = Repeat(Altern(Symbol #"a",Altern(Symbol #"b",Symbol #"c")))
       in
@@ -35,10 +36,14 @@ in
    val assert = Test.polyAssertEq {show=(list (pair (showToken, string)))}
    val lexerTests =
        group ("simple lexer", assert,
-              [{actual=lex "1010",       expected=[(SimpleLexerSpec.Num, "1010")]},
+              [
+                {actual=lex "0",       expected=[(SimpleLexerSpec.Num, "0")]},
+                {actual=lex "1",       expected=[(SimpleLexerSpec.Num, "1")]},
+               {actual=lex "1010",       expected=[(SimpleLexerSpec.Num, "1010")]},
                {actual=lex "ab",         expected=[(SimpleLexerSpec.Id, "ab")]},
                {actual=lex "100100abab", expected=[(SimpleLexerSpec.Num, "100100"),
-                                                   (SimpleLexerSpec.Id, "abab")]}])
+                                                   (SimpleLexerSpec.Id, "abab")]}
+             ])
 end
 
 fun doTestRun v = Test.runTestSuite (v, lexerTests)
