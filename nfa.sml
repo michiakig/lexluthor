@@ -13,6 +13,7 @@ sig
    val add : 'a t * vtx * vtx * edge -> 'a t
    val neighbors : 'a t * vtx * edge -> vtx list
    val start : 'a t -> vtx
+   val setStart : 'a t * vtx -> 'a t
    val finals : 'a t -> (vtx * 'a) list
    val setFinals : 'a t * (vtx * 'a) list -> 'a t
    val isFinal : 'a t * vtx -> 'a option
@@ -48,6 +49,7 @@ struct
    fun cons {start, edges, finals} =
        NFA (M.insert (M.empty, start, edges), start, insertList (M.empty, finals))
    fun start (NFA (_, start, _)) = start
+   fun setStart (NFA (vs, _, fs), s) = NFA (vs, s, fs)
    fun isFinal (NFA (_, _, finals), s) =
        M.find (finals, s)
    fun add (NFA (m, s, f), x, y, ch) =
