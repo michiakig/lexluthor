@@ -52,6 +52,4 @@ val tests =
                  {actual=breadthFirstSearch (tree, 1, 9), expected=NONE},
                  {actual=breadthFirstSearch (tree, 1, 7), expected=SOME 7}])
 
-fun doTestRun v = Test.runTestSuite (v, tests)
-
 end

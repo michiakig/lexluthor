@@ -41,6 +41,4 @@ val tests =
                    {actual = size (Concat (Symbol #"a", Symbol #"b")), expected = {states = 4, edges = 3}}
     ])]
 
-fun doTestRun v = Test.runTestSuite (v, tests)
-
 end

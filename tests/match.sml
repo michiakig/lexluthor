@@ -14,7 +14,7 @@ structure EmptyLexerSpec =
 structure LexLuthor = LexLuthorFn(EmptyLexerSpec: LEXER_SPEC)
 val match = LexLuthor.match
 
-val regexTests =
+val tests =
    let
       val a = Symbol #"a"
       val b = Symbol #"b"
@@ -27,7 +27,5 @@ val regexTests =
               {actual = match (Altern(a, b), "ab"),  expected = SOME ("a", "b")},
               {actual = match (Repeat a, "aaaab"),   expected = SOME ("aaaa", "b")}])
    end
-
-fun doTestRun v = Test.runTestSuite (v, regexTests)
 
 end

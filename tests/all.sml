@@ -1,10 +1,17 @@
 (* entry point to run all tests *)
 structure Main =
    struct
-      fun main _ = (MatchTests.doTestRun true
-                    ; RegExpTests.doTestRun true
-                    ; SimpleLexerTests.doTestRun true
-                    ; ListGraphTests.doTestRun true
-                    ; GraphSearchTests.doTestRun true
-                    ; OS.Process.success)
+      val tests = [
+         MatchTests.tests
+         , RegExpTests.tests
+         , SimpleLexerTests.tests
+         , ListGraphTests.tests
+         , GraphSearchTests.tests
+      ]
+
+      fun main (_, []) = (List.app (fn t => Test.runTestSuite (false, t)) tests
+                         ; OS.Process.success)
+        | main (_, v :: _) =
+          (List.app (fn t => Test.runTestSuite (v = "verbose", t)) tests
+          ; OS.Process.success)
    end

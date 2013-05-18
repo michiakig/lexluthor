@@ -35,7 +35,7 @@ local
    open Test
 in
    val assert = Test.polyAssertEq {show=(list (triple (showToken, string, int)))}
-   val lexerTests =
+   val tests =
        group ("simple lexer", assert,
               [
                 {actual=lex "0",       expected=[(SimpleLexerSpec.Num, "0", 1)]},
@@ -56,7 +56,5 @@ in
 
              ])
 end
-
-fun doTestRun v = Test.runTestSuite (v, lexerTests)
 
 end

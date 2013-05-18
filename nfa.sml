@@ -3,19 +3,20 @@
  *)
 signature NFA =
 sig
-   type t
+   type 'a t
    eqtype vtx
    datatype edge = Eps | Ch of char
    val id : unit -> vtx
    val cons : {start : vtx,
                edges : (vtx * edge) list,
-               finals : vtx list} -> t
-   val add : t * vtx * vtx * edge -> t
-   val neighbors : t * vtx * edge -> vtx list
-   val start : t -> vtx
-   val finals : t -> vtx list
-   val isFinal : t * vtx -> bool
-   val merge : t * t * vtx -> t
+               finals : (vtx * 'a) list} -> 'a t
+   val add : 'a t * vtx * vtx * edge -> 'a t
+   val neighbors : 'a t * vtx * edge -> vtx list
+   val start : 'a t -> vtx
+   val finals : 'a t -> (vtx * 'a) list
+   val setFinals : 'a t * (vtx * 'a) list -> 'a t
+   val isFinal : 'a t * vtx -> 'a option
+   val merge : 'a t * 'a t * vtx -> 'a t
 end
 
 (*
@@ -26,12 +27,13 @@ end
 structure NFA :> NFA =
 struct
    structure M = IntListMap
-   structure S = IntListSet
    type vtx = int
    datatype edge = Eps | Ch of char
    (* vertices, start, finals *)
-   datatype nfa = NFA of (vtx * edge) list M.map * vtx * S.set
-   type t = nfa
+   datatype 'a nfa = NFA of (vtx * edge) list M.map * vtx * 'a M.map
+   type 'a t = 'a nfa
+   fun insertList (m, alist) =
+       foldl (fn ((k, v), acc) => M.insert (acc, k, v)) m alist
    local
       val id_ = ref 0
    in
@@ -44,10 +46,10 @@ struct
           end
    end
    fun cons {start, edges, finals} =
-       NFA (M.insert (M.empty, start, edges), start, S.addList (S.empty, finals))
+       NFA (M.insert (M.empty, start, edges), start, insertList (M.empty, finals))
    fun start (NFA (_, start, _)) = start
    fun isFinal (NFA (_, _, finals), s) =
-       S.member (finals, s)
+       M.find (finals, s)
    fun add (NFA (m, s, f), x, y, ch) =
        let
           val xedges = Option.getOpt (M.find (m, x), [])
@@ -62,10 +64,14 @@ struct
            NONE => raise NoSuchVertex
          | SOME edges => map (fn (x, _) => x)
                              (List.filter (fn (x', ch') => ch = ch') edges)
-   fun finals (NFA (_, _, finals)) = S.listItems finals
+   fun finals (NFA (_, _, finals)) = M.listItemsi finals
+   fun setFinals (NFA (vs, s, _), finals) =
+       NFA (vs, s, insertList (M.empty, finals))
    exception NonDistinctStates
    fun merge (NFA (m1, s1, f1), NFA (m2, s2, f2), s) =
-       NFA (M.unionWith (fn (x, y) => raise NonDistinctStates) (m1, m2),
-            s,
-            S.union (f1, f2))
+       let
+          fun error _ = raise NonDistinctStates
+       in
+          NFA (M.unionWith error (m1, m2), s, M.unionWith error (f1, f2))
+       end
 end

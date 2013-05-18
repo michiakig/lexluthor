@@ -40,8 +40,6 @@ val tests =
             [{actual = G.allNeighbors (tree, 1), expected = [("a",2), ("b",3)]}
        ])]
 
-fun doTestRun v =
-    Test.runTestSuite (v, tests)
 end
 
 structure ListGraphTests = DirectedWeightedGraphTesterFn(ListGraph)

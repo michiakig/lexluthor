@@ -1,0 +1,9 @@
+Library
+    functor NFATests
+    structure ListNFATests
+is
+    nfa.sml
+    framework.cm
+    ../nfa.cm
+    ../lib/lib.cm
+    $/basis.cm

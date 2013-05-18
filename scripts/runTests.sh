@@ -7,8 +7,9 @@ function smlnj {
     shortname="${filename%.*}"
     ml-build $fullname Main.main $shortname
     if [ $? -eq 0 ]; then
+        echo ""
         echo "*** build successful, running tests ***"
-        time sml @SMLload=$shortname.x86-darwin
+        time sml @SMLload=$shortname.x86-darwin concise
         rm $shortname.x86-darwin
     fi
 }

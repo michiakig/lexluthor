@@ -5,9 +5,10 @@ is
     match.sml
     regexp.sml
     simplelexer.sml
+    nfa.cm
     graphs/simple.sml
     graphs/search.sml
-    framework.sml
+    framework.cm
     ../lexluthor.cm
     ../lib/lib.cm
     ../lib/graphs.cm
