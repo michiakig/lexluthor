@@ -11,6 +11,7 @@ sig
                edges : (vtx * edge) list,
                finals : (vtx * 'a) list} -> 'a t
    val add : 'a t * vtx * vtx * edge -> 'a t
+   val addEdges : 'a t * (vtx * vtx * edge) list -> 'a t
    val neighbors : 'a t * vtx * edge -> vtx list
    val start : 'a t -> vtx
    val setStart : 'a t * vtx -> 'a t
@@ -60,6 +61,8 @@ struct
           NFA (M.insert (M.insert (m, x, (y, ch) :: xedges),
                          y, yedges), s, f)
        end
+   fun addEdges (n, edges) = foldl (fn ((x, y, ch), acc) =>
+                                       add (n, x, y, ch)) n edges
    exception NoSuchVertex
    fun neighbors (NFA (m, _, _), x, ch) =
        case M.find (m, x) of
