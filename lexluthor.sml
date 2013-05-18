@@ -14,19 +14,19 @@ structure BasicRegExpSyntax =
        | Repeat of syntax
        | Epsilon
 
-      val getc: string -> (char, int) StringCvt.reader =
+      val getc : string -> (char, int) StringCvt.reader =
          fn s => fn i =>
             if i < String.size s
-               then SOME(String.sub(s, i), i+1)
+               then SOME (String.sub (s, i), i + 1)
             else NONE
 
-      val parse: string -> R.syntax option =
+      val parse : string -> R.syntax option =
          fn s =>
-            case (AwkSyntax.scan (getc s)) 0 of
+            case AwkSyntax.scan (getc s) 0 of
                NONE => NONE
              | SOME (re, _) => SOME re
 
-      fun unsafeParse s = Option.valOf(parse s)
+      fun unsafeParse s = Option.valOf (parse s)
 
       (*
       not supported:
@@ -36,6 +36,7 @@ structure BasicRegExpSyntax =
         | Begin
         | End
       *)
+      exception Unsupported
       local
          fun reduce f l = foldl f (hd l) (tl l)
       in
@@ -46,13 +47,15 @@ structure BasicRegExpSyntax =
            | desugar (R.MatchSet charSet) =
              reduce Altern (rev (map Literal
                                      (R.CharSet.listItems charSet)))
-           | desugar (R.Plus syn) = let val b = (desugar syn)
-                                    in Altern (b, Repeat b)
-                                    end
-           | desugar (R.Option syn) = let val b = (desugar syn)
-                                      in Altern (b, Epsilon)
-                                      end
+           | desugar (R.Plus syn) =
+             let
+                val b = (desugar syn)
+             in
+                Altern (b, Repeat b)
+             end
+           | desugar (R.Option syn) = Altern (desugar syn, Epsilon)
            | desugar (R.Group syn) = desugar syn
+           | desugar _ = raise Unsupported
       end
 
       fun unsafeDesugar s = desugar(unsafeParse s)
@@ -86,15 +89,15 @@ structure BasicRegExpSyntax =
 signature LEXER_SPEC =
    sig
       eqtype token
-      val tokens: (BasicRegExpSyntax.syntax * token) list
+      val tokens : (BasicRegExpSyntax.syntax * token) list
    end
 
-functor LexLuthorFn(LexerSpec: LEXER_SPEC) =
+functor LexLuthorFn(LexerSpec : LEXER_SPEC) =
 struct
 
 structure RE = BasicRegExpSyntax
 
-(* S is a set of states (ints), T is a set of S (set of sets of states) *)
+(* S is a set of states (ints), T is a set of S.set (set of sets of states) *)
 structure S : ORD_SET = IntListSet
 structure T : ORD_SET =
    ListSetFn(
@@ -111,14 +114,14 @@ structure M = ExtOrdMapFn(ListMapFn(
 
 structure IntListMap = ExtOrdMapFn(IntListMap)
 
-fun fromList l = S.addList(S.empty,l)
+fun fromList l = S.addList (S.empty, l)
 
 fun setToString s =
    let
       val items = S.listItems s
       val commas = ExtList.interleave (map Int.toString items) ","
    in
-      "{" ^ String.concat(commas) ^ "}"
+      "{" ^ String.concat commas ^ "}"
    end
 
 fun mapToString m =
@@ -126,7 +129,7 @@ fun mapToString m =
       val items = M.listItemsi m
       fun pairToS (s, i) = (setToString s) ^ ":" ^ (Int.toString i)
    in
-      "{" ^ (String.concat(ExtList.interleave (map pairToS items) ",")) ^ "}"
+      "{" ^ (String.concat (ExtList.interleave (map pairToS items) ",")) ^ "}"
    end
 
 type state = int
@@ -169,7 +172,7 @@ end
 fun epsilon tok =
    let
       val start = nextId ()
-      val stop = nextId ();
+      val stop = nextId ()
    in
       NFA {startState = start,
            stopStates = IntListMap.singleton (stop, tok),
