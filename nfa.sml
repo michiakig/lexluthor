@@ -1,16 +1,28 @@
+(*
+ * signature for functional NFAs
+ *)
 signature NFA =
 sig
    type t
-   type vtx
+   eqtype vtx
    datatype edge = Eps | Ch of char
-   val id: unit -> vtx
-   val cons: {start: vtx, edges: (vtx * edge) list, finals: vtx list} -> t
-   val add: t * vtx * vtx * edge -> t
-   val neighbors: t * vtx * edge -> vtx list
-   val start: t -> vtx
-   val isFinal: t * vtx -> bool
+   val id : unit -> vtx
+   val cons : {start : vtx,
+               edges : (vtx * edge) list,
+               finals : vtx list} -> t
+   val add : t * vtx * vtx * edge -> t
+   val neighbors : t * vtx * edge -> vtx list
+   val start : t -> vtx
+   val finals : t -> vtx list
+   val isFinal : t * vtx -> bool
+   val merge : t * t * vtx -> t
 end
 
+(*
+ * List-based implementation. Slightly less terrible than using only
+ * lists, since it uses a map from state to list of edges, instead of
+ * a list of all edges
+ *)
 structure NFA :> NFA =
 struct
    structure M = IntListMap
@@ -18,7 +30,7 @@ struct
    type vtx = int
    datatype edge = Eps | Ch of char
    (* vertices, start, finals *)
-    datatype nfa = NFA of (vtx * edge) list M.map * vtx * S.set
+   datatype nfa = NFA of (vtx * edge) list M.map * vtx * S.set
    type t = nfa
    local
       val id_ = ref 0
@@ -31,10 +43,6 @@ struct
              ; x)
           end
    end
-   fun validate (NFA (m, _, _), x) =
-       case M.find (m, x) of
-           NONE => false
-         | SOME _ => true
    fun cons {start, edges, finals} =
        NFA (M.insert (M.empty, start, edges), start, S.addList (S.empty, finals))
    fun start (NFA (_, start, _)) = start
@@ -54,4 +62,10 @@ struct
            NONE => raise NoSuchVertex
          | SOME edges => map (fn (x, _) => x)
                              (List.filter (fn (x', ch') => ch = ch') edges)
+   fun finals (NFA (_, _, finals)) = S.listItems finals
+   exception NonDistinctStates
+   fun merge (NFA (m1, s1, f1), NFA (m2, s2, f2), s) =
+       NFA (M.unionWith (fn (x, y) => raise NonDistinctStates) (m1, m2),
+            s,
+            S.union (f1, f2))
 end
