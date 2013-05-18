@@ -8,7 +8,7 @@ structure BasicRegExpSyntax =
       structure R = RegExpSyntax
 
       datatype syntax =
-         Symbol of char
+         Literal of char
        | Concat of syntax * syntax
        | Altern of syntax * syntax
        | Repeat of syntax
@@ -39,12 +39,12 @@ structure BasicRegExpSyntax =
       local
          fun reduce f l = foldl f (hd l) (tl l)
       in
-         fun desugar (R.Char ch) = Symbol ch
+         fun desugar (R.Char ch) = Literal ch
            | desugar (R.Star syn) = Repeat (desugar syn)
            | desugar (R.Alt syns) = reduce Altern (rev (map desugar syns))
            | desugar (R.Concat syns) = reduce Concat (rev (map desugar syns))
            | desugar (R.MatchSet charSet) =
-             reduce Altern (rev (map Symbol
+             reduce Altern (rev (map Literal
                                      (R.CharSet.listItems charSet)))
            | desugar (R.Plus syn) = let val b = (desugar syn)
                                     in Altern (b, Repeat b)
@@ -59,7 +59,7 @@ structure BasicRegExpSyntax =
 
       (* computes the size of the NFA resulting from Thompson's construction *)
       fun size Epsilon = {states = 2, edges = 1}
-        | size (Symbol _) = {states = 2, edges = 1}
+        | size (Literal _) = {states = 2, edges = 1}
         | size (Concat (a, b)) =
           let
              val {states = a, edges = a'} = size a
@@ -176,7 +176,7 @@ fun epsilon tok =
            edges      = G.addEdge (G.empty, start, stop, Epsilon)}
    end
 
-fun sym (tok, ch) =
+fun literal (tok, ch) =
    let
       val start = nextId ()
       val stop = nextId ()
@@ -233,7 +233,7 @@ fun repeat (tok, NFA {startState, stopStates, edges}) =
            edges      = G.addEdges (edges, epsEdges)}
    end
 
-fun regexToNFA (tok, RE.Symbol ch) = sym (tok, ch)
+fun regexToNFA (tok, RE.Literal ch) = literal (tok, ch)
   | regexToNFA (tok, RE.Epsilon) = epsilon tok
   | regexToNFA (tok, RE.Concat (a, b)) = concat(tok,
                                              regexToNFA (tok, a),

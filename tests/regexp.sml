@@ -9,7 +9,7 @@ fun eq (Altern (a,b), Altern (c,d)) = eq (a,c) andalso eq (b,d) orelse
   | eq (r1,r2) = r1 = r2
 
 fun show Epsilon = "Epsilon"
-  | show (Symbol ch) = "Symbol " ^ Char.toString ch
+  | show (Literal ch) = "Literal " ^ Char.toString ch
   | show (Concat (a, b)) = "Concat (" ^ show a ^ ", " ^ show b ^ ")"
   | show (Altern (a, b)) = "Altern (" ^ show a ^ ", " ^ show b ^ ")"
   | show (Repeat a) = "Repeat (" ^ show a ^ ")"
@@ -20,25 +20,25 @@ val tests =
     Test.concat [
     Test.group
        ("desugar", Test.genAssertEq {eq = eq, show = show},
-        [{actual = d "a",      expected = Symbol #"a"},
-         {actual = d "a*",     expected = Repeat(Symbol #"a")},
-         {actual = d "a|b",    expected = Altern(Symbol #"a", Symbol #"b")},
-         {actual = d "ab",     expected = Concat(Symbol #"a", Symbol #"b")},
-         {actual = d "[abc]",  expected = Altern(Symbol #"a", Altern(Symbol #"c", Symbol #"b"))},
-         {actual = d "a+",     expected = Altern(Symbol #"a", Repeat(Symbol #"a"))},
-         {actual = d "a?",     expected = Altern(Symbol #"a", Epsilon)},
-         {actual = d "(a|b)*", expected = Repeat(Altern(Symbol #"a", Symbol #"b"))},
-         {actual = d "(ab)?",  expected = Altern(Concat(Symbol #"a", Symbol #"b"),Epsilon)},
-         {actual = d "(ab)*",  expected = Repeat(Concat(Symbol #"a", Symbol #"b"))}])
+        [{actual = d "a",      expected = Literal #"a"},
+         {actual = d "a*",     expected = Repeat(Literal #"a")},
+         {actual = d "a|b",    expected = Altern(Literal #"a", Literal #"b")},
+         {actual = d "ab",     expected = Concat(Literal #"a", Literal #"b")},
+         {actual = d "[abc]",  expected = Altern(Literal #"a", Altern(Literal #"c", Literal #"b"))},
+         {actual = d "a+",     expected = Altern(Literal #"a", Repeat(Literal #"a"))},
+         {actual = d "a?",     expected = Altern(Literal #"a", Epsilon)},
+         {actual = d "(a|b)*", expected = Repeat(Altern(Literal #"a", Literal #"b"))},
+         {actual = d "(ab)?",  expected = Altern(Concat(Literal #"a", Literal #"b"),Epsilon)},
+         {actual = d "(ab)*",  expected = Repeat(Concat(Literal #"a", Literal #"b"))}])
     , Test.group ("re.size", Test.polyAssertEq
                                 {show = fn {states, edges} =>
                                            "{states=" ^ Int.toString states ^
                                            ",edges=" ^ Int.toString edges ^ "}"},
                   [{actual = size Epsilon,                             expected = {states = 2, edges = 1}},
-                   {actual = size (Symbol #"a"),                       expected = {states = 2, edges = 1}},
-                   {actual = size (Repeat (Symbol #"a")),              expected = {states = 2, edges = 3}},
-                   {actual = size (Altern (Symbol #"a", Symbol #"b")), expected = {states = 6, edges = 6}},
-                   {actual = size (Concat (Symbol #"a", Symbol #"b")), expected = {states = 4, edges = 3}}
+                   {actual = size (Literal #"a"),                       expected = {states = 2, edges = 1}},
+                   {actual = size (Repeat (Literal #"a")),              expected = {states = 2, edges = 3}},
+                   {actual = size (Altern (Literal #"a", Literal #"b")), expected = {states = 6, edges = 6}},
+                   {actual = size (Concat (Literal #"a", Literal #"b")), expected = {states = 4, edges = 3}}
     ])]
 
 end

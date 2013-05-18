@@ -16,8 +16,8 @@ val match = LexLuthor.match
 
 val tests =
    let
-      val a = Symbol #"a"
-      val b = Symbol #"b"
+      val a = Literal #"a"
+      val b = Literal #"b"
       val assert = Test.polyAssertEq {show=Show.option (Show.sq Show.string)}
    in
       group ("regexps", assert,

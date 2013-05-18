@@ -9,11 +9,11 @@ structure SimpleLexerSpec =
       datatype token = Num | Id | WSpace
       local
          (* binary numbers *)
-         val num = Concat(Altern(Symbol #"0",Symbol #"1"),
-                          Repeat(Altern(Symbol #"0",Symbol #"1")))
+         val num = Concat(Altern(Literal #"0",Literal #"1"),
+                          Repeat(Altern(Literal #"0",Literal #"1")))
          (* identifiers consisting only of a,b,c *)
-         val id = Repeat(Altern(Symbol #"a",Altern(Symbol #"b",Symbol #"c")))
-         val whitespace = Repeat(Altern(Symbol #" ",Symbol #"\n"))
+         val id = Repeat(Altern(Literal #"a",Altern(Literal #"b",Literal #"c")))
+         val whitespace = Repeat(Altern(Literal #" ",Literal #"\n"))
       in
          val tokens = [(num,Num),(id,Id),(whitespace, WSpace)]
       end
